@@ -1,0 +1,8 @@
+{
+  "name": "aegis-bot",
+  "version": "1.0.0",
+  "description": "a discord bot",
+  "main": "index.js",
+  "author": "VeraxonHD",
+  "license": "ISC"
+}
