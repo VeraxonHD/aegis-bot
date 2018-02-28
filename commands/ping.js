@@ -1,7 +1,8 @@
 module.exports = {
     name: "ping",
     description: "Test bot awareness",
-    alias: "p",
+    alias: ["p", "latency"],
+    usgae: "ping",
     execute(message, args) {
         message.channel.send("Pong!");
     }

@@ -10,6 +10,16 @@ client.login(config.token);
 client.on("ready", () => {
     console.log("Aegis Loaded.");
     console.log(`Prefix: ${prefix}`);
+    
+    client.commands = new Discord.Collection();
+    //reads the commands folder (directory) and creates an array with the filenames of the files in there.
+    const commandDirArray = fs.readdirSync("./commands");
+    commandDirArray.forEach(e => {
+        const commandFile = require(`./commands/${e}`);
+        //adds a record of a command to the collection with key field and the exports module.
+        client.commands.set(commandFile.name, commandFile);
+    });
+    
 });
 
 client.on("message", message => {
@@ -18,21 +28,20 @@ client.on("message", message => {
 
     //sets up variables and creates a Discord.JS Collection
     const args = message.content.slice(prefix.length).split(" ");
-    const command = args.shift().toLowerCase();
-    client.commands = new Discord.Collection();
-    
-    //reads the commands folder (directory) and creates an array with the filenames of the files in there.
-    const commandFiles = fs.readdirSync("./commands");
-    commandFiles.forEach(e => {
-        const command = require(`./commands/${e}`);
-        //adds a record of a command to the collection with key field and the exports module.
-        client.commands.set(command.name, command);
-    });
+    const commandName = args.shift().toLowerCase();
+    const command = client.commands.get(commandName) || client.commands.find(cmd => cmd.alias && cmd.alias.includes(commandName));
 
-    //If the command is ping:-
-    if(command == "ping"){
-        //Call upon the ping command in the collection and use the .execute in that module's exports object, with the given parameters.
-        client.commands.get("ping").execute(message, args);
+    if(!command) return;
+
+    try{
+        command.execute(message, args, prefix, client, Discord);
+    }catch(error){
+        console.error(error);
+        const embed = new Discord.RichEmbed()
+            .addField("An Error Occured.", error.message)
+            .setTimestamp(new Date())
+            .setColor("red");
+        message.channel.send({embed});
     }
 });
 
