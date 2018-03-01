@@ -4,12 +4,43 @@ var config = require("./config.json");
 var prefix = config.prefix;
 var fs = require("fs");
 var logChannelRawID = ("409365588117422100");
+var Sequelize = require("sequelize");
 
 client.login(config.token);
+
+const sequelize = new Sequelize("database", "user", "password", {
+    host: "localhost",
+    dialect: "sqlite",
+    logging: false,
+    storage: "database.sqlite"
+});
+
+const Tags = sequelize.define("tags", {
+    name: {
+        type: Sequelize.STRING,
+        unique: true,
+    },
+    command: Sequelize.STRING,
+    creator: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+    }
+});
+
+//Exports
+exports.dbEntry_Tags = (name, command, creator) => {
+    Tags.create({
+        name: name,
+        command: command,
+        creator: creator
+    });
+}
+//-Exports
 
 client.on("ready", () => {
     console.log("Aegis Loaded.");
     console.log(`Prefix: ${prefix}`);
+    Tags.sync({force: true});
     
     client.commands = new Discord.Collection();
     //reads the commands folder (directory) and creates an array with the filenames of the files in there.
@@ -19,7 +50,6 @@ client.on("ready", () => {
         //adds a record of a command to the collection with key field and the exports module.
         client.commands.set(commandFile.name, commandFile);
     });
-    
 });
 
 client.on("message", message => {
@@ -30,11 +60,8 @@ client.on("message", message => {
     const args = message.content.slice(prefix.length).split(" ");
     const commandName = args.shift().toLowerCase();
     const command = client.commands.get(commandName) || client.commands.find(cmd => cmd.alias && cmd.alias.includes(commandName));
-
-    if(!command) return;
-
     try{
-        command.execute(message, args, prefix, client, Discord);
+        command.execute(message, args, prefix, client, Discord, Tags);
     }catch(error){
         console.error(error);
         const embed = new Discord.RichEmbed()
