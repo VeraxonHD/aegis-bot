@@ -1,5 +1,10 @@
 {
     "prefix" : "a!",
     "ownerID" : "213040107278696450",
+<<<<<<< HEAD
     "token" : "<your token here>"
 }
+=======
+    "token" : "<token>"
+}
+>>>>>>> 99461f44e7ab4f30920ff296c999f206cbad9203
