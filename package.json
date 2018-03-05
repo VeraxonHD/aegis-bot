@@ -6,8 +6,10 @@
   "author": "VeraxonHD",
   "license": "ISC",
   "dependencies": {
+    "dateformat": "^3.0.3",
     "discord.js": "11.3.0",
     "fs": "0.0.1-security",
+    "jsonfile": "^4.0.0",
     "sequelize": "^4.35.0",
     "sqlite3": "^3.1.13"
   }
