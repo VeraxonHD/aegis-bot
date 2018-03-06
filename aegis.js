@@ -16,10 +16,7 @@ const sequelize = new Sequelize("database", "user", "password", {
 });
 
 const UserDB = sequelize.define("userdb", {
-    userid: {
-        type: Sequelize.INTEGER,
-        unique: true
-    },
+    userid: Sequelize.INTEGER,
     username: Sequelize.TEXT,
     warnings: Sequelize.INTEGER,
     messagecount: Sequelize.INTEGER,
@@ -27,6 +24,17 @@ const UserDB = sequelize.define("userdb", {
     lastSeenTS: Sequelize.INTEGER,
     lastSeenChan: Sequelize.TEXT,
     lastSeenGuild: Sequelize.TEXT
+})
+
+const EvidenceDB = sequelize.define("evidencedb", {
+    userid: Sequelize.INTEGER,
+    CaseID: {
+        type: Sequelize.TEXT,
+        unique: true
+    },
+    typeOf: Sequelize.TEXT,
+    dateAdded: Sequelize.INTEGER,
+    evidenceLinks: Sequelize.TEXT
 })
 
 exports.warnAdd = (userid) =>{
@@ -45,10 +53,15 @@ exports.sendDB = () =>{
     return UserDB;
 }
 
+exports.sendEvidenceDB = () =>{
+    return EvidenceDB;
+}
+
 client.on("ready", () => {
     console.log("Aegis Loaded.");
     console.log(`Prefix: ${prefix}`);
     UserDB.sync();
+    EvidenceDB.sync();
     
     client.commands = new Discord.Collection();
     //reads the commands folder (directory) and creates an array with the filenames of the files in there.

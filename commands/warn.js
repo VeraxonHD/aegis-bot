@@ -21,8 +21,9 @@ module.exports = {
 
             var moderator = message.author.tag;
             var member;
-            if(args[0].length == 18){
-                member = message.guild.members.get(args[0])
+            var snowflakeRegexTest = new RegExp("([0-9]{18})");
+            if(args[0].length == 18 && snowflakeRegexTest.test(args[0])){
+                member = message.guild.members.get(args[0]);
             }else if(message.mentions.users.first()){
                 member = message.mentions.users.first();
             }else{
@@ -55,12 +56,19 @@ module.exports = {
 
             if(message.attachments.exists){
                 message.attachments.forEach(element => {
-                    console.log(element.id);
                     const attatchembed = new Discord.RichEmbed()
                         .setAuthor(`Evidence For Case ${currentcaseid}`)
                         .setImage(element.url)
                         .setFooter(`AEGIS-WARN-EVIDENCE Event | Case ID: ${currentcaseid}`)
                     logchannel.send(`Warning evidence for **${member.tag}** - Case ID **${currentcaseid}**`, {embed: attatchembed})
+                    var evidencedb = mainfile.sendEvidenceDB();
+                    evidencedb.create({
+                        userid: member.id,
+                        CaseID: currentcaseid,
+                        typeOf: "WARN",
+                        dateAdded: message.createdTimestamp,
+                        evidenceLinks: element.url
+                    })
                 });   
             }
 

@@ -10,14 +10,12 @@ module.exports = {
         const embed = new Discord.RichEmbed();
         var commandName = args[0];
             if(!commandName){
-                var commandList = fs.readdirSync("./commands");
-                var i = 1
-                commandList.forEach(element => {
-                    embed.addField("Command " + i++, element.slice(0, element.indexOf(".")));
-                });
-                message.reply({embed});
+                message.reply("Please specify a command to get help on.")
             }else{
                 const command = client.commands.get(commandName);
+                if(!command){
+                    return message.reply("Command not found.")
+                }
 
                 var name = command.name;
                 var description = command.description;
@@ -25,6 +23,9 @@ module.exports = {
                 var usgae = command.usgae;
                 var permissions = command.permissions;
 
+                if(!alias || alias.length == 0){
+                    alias = "None"
+                }
                 embed.addField("Name", name, true);
                 embed.addField("Description", description, true);
                 embed.addBlankField();

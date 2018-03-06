@@ -10,8 +10,9 @@ module.exports = {
         var Discord = require("discord.js")
 
         var member;
-            if(args[0].length == 18){
-                member = message.guild.members.get(args[0])
+        var snowflakeRegexTest = new RegExp("([0-9]{18})");
+            if(args[0].length == 18 && snowflakeRegexTest.test(args[0])){
+                member = message.guild.members.get(args[0]);
             }else if(message.mentions.users.first()){
                 member = message.mentions.users.first();
             }else{
