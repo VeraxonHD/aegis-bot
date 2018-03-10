@@ -2,11 +2,11 @@
   "name": "aegis-bot",
   "version": "1.0.0",
   "description": "a discord bot",
-  "main": "index.js",
+  "main": "aegis.js",
   "author": "VeraxonHD",
   "license": "ISC",
   "scripts": {
-    "start": "aegis.js"
+    "start": "node aegis.js"
   },
   "dependencies": {
     "dateformat": "^3.0.3",
