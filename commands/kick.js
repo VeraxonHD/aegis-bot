@@ -8,6 +8,7 @@ module.exports = {
         var Discord = require("discord.js");
         var config = require("../config.json");
         var moderator = message.author.tag;
+        var mainfile = require("../aegis.js")
         var tgtmember;
         var snowflakeRegexTest = new RegExp("([0-9]{18})");
             if(args[0].length == 18 && snowflakeRegexTest.test(args[0])){
@@ -58,7 +59,8 @@ module.exports = {
                 .setColor("#00C597")
             logchannel.send(`Kick log for **${tgtmember.tag}** - Case ID **${currentcaseid}**`, {embed})
 
-        if(message.attachments.exists){
+        var evidencedb = mainfile.sendEvidenceDB();
+        if(message.attachments.size > 0){
             message.attachments.forEach(element => {
                 console.log(element.id);
                 const attatchembed = new Discord.RichEmbed()
@@ -66,15 +68,25 @@ module.exports = {
                     .setImage(element.url)
                     .setFooter(`AEGIS-KICK-EVIDENCE Event | Case ID: ${currentcaseid}`)
                 logchannel.send(`Kick evidence for **${tgtmember.tag}** - Case ID **${currentcaseid}**`, {embed: attatchembed})
-                var evidencedb = mainfile.sendEvidenceDB();
-                    evidencedb.create({
-                        userid: member.id,
-                        CaseID: currentcaseid,
-                        typeOf: "KICK",
-                        dateAdded: message.createdTimestamp,
-                        evidenceLinks: element.url
-                    })
+                
+                evidencedb.create({
+                    userid: tgtmember.id,
+                    CaseID: currentcaseid,
+                    typeOf: "KICK",
+                    dateAdded: message.createdTimestamp,
+                    evidenceLinks: element.url,
+                    reason: reason
+                })
             });   
+        }else{
+            evidencedb.create({
+                userid: tgtmember.id,
+                CaseID: currentcaseid,
+                typeOf: "KICK",
+                dateAdded: message.createdTimestamp,
+                evidenceLinks: "No Evidence",
+                reason: reason
+            })
         }
     }
 };

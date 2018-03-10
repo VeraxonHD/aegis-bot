@@ -59,22 +59,33 @@ module.exports = {
                 .setColor("#00C597")
             logchannel.send(`Ban log for **${tgtmember.tag}** - Case ID **${currentcaseid}**`, {embed})
 
-        if(message.attachments.exists){
+        var evidencedb = mainfile.sendEvidenceDB();
+        if(message.attachments.size > 0){
             message.attachments.forEach(element => {
                 const attatchembed = new Discord.RichEmbed()
                     .setAuthor(`Evidence For Case ${currentcaseid}`)
                     .setImage(element.url)
                     .setFooter(`AEGIS-BAN-EVIDENCE Event | Case ID: ${currentcaseid}`)
                 logchannel.send(`Ban evidence for **${tgtmember.tag}** - Case ID **${currentcaseid}**`, {embed: attatchembed})
-                var evidencedb = mainfile.sendEvidenceDB();
+                
                 evidencedb.create({
                     userid: tgtmember.id,
                     CaseID: currentcaseid,
                     typeOf: "BAN",
                     dateAdded: message.createdTimestamp,
-                    evidenceLinks: element.url
+                    evidenceLinks: element.url,
+                    reason: reason
                 })
             });   
+        }else{
+            evidencedb.create({
+                userid: tgtmember.id,
+                CaseID: currentcaseid,
+                typeOf: "BAN",
+                dateAdded: message.createdTimestamp,
+                evidenceLinks: "No Evidence",
+                reason: reason
+            })
         }
     }
 };

@@ -1,0 +1,3 @@
+{
+    "ignore": ["*.json", "database.sqlite", "database.sqlite-journal"]
+}

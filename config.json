@@ -1,5 +1,30 @@
 {
-    "prefix" : "a!",
-    "ownerID" : "213040107278696450",
-    "token" : "<your token here>"
+    "general": {
+        "_comment": "nts: git has assumed there are no changes here, so git update-index --no-assume-unchanged config.json before next push.",
+        "prefix": "a!",
+        "ownerID": "213040107278696450",
+        "botID": "416349322620305408"
+    },
+    "409365548766461952":{
+        "name": "Bomb Crater",
+        "owner": "213040107278696450",
+        "logchannels": {
+            "default": "419089321849520128",
+            "moderation": "",
+            "voice": "",
+            "migration": ""
+        },
+        "mutedrole": "muted"
+    },
+    "137719638556540929":{
+        "name": "The Division",
+        "owner": "166363417823805441",
+        "logchannels": {
+            "default": "405076129196802048",
+            "moderation": "150138495774621697",
+            "voice": "353793934616559617",
+            "migration": "299712887314972673"
+        },
+        "mutedrole": "muted"
+    }
 }
