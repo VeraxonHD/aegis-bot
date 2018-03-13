@@ -7,7 +7,8 @@ module.exports = {
     execute(message, args, client) {
         var Discord = require("discord.js");
         var config = require("../config.json");
-        var mainfile = require("../aegis.js")
+        var mainfile = require("../aegis.js");
+        var jsonfile = require("jsonfile");
         var moderator = message.author.tag;
         var tgtmember;
         var snowflakeRegexTest = new RegExp("([0-9]{18})");
@@ -87,5 +88,6 @@ module.exports = {
                 reason: reason
             })
         }
+        jsonfile.writeFile("database.sqlite", EvidenceDB);
     }
 };

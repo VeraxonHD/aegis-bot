@@ -5,7 +5,7 @@ var mutes = require("./mutes.json")
 var prefix = config.general.prefix;
 var fs = require("fs");
 var Sequelize = require("sequelize");
-var jsonfile = require("jsonfile")
+var jsonfile = require("jsonfile");
 
 client.login(process.env.TOKEN);
 
@@ -52,6 +52,8 @@ exports.warnAdd = (userid) =>{
         var success = false;
         return success;
     }
+
+    jsonfile.writeFile("database.sqlite", EvidenceDB);
 };
 
 exports.sendDB = () =>{
@@ -132,6 +134,8 @@ client.on("message", message => {
         UserDB.update({lastSeenChan: message.channel.name}, {where: {userid: message.author.id}});
         UserDB.update({lastSeenGuild: message.guild.name}, {where: {userid: message.author.id}});
     });
+
+    jsonfile.writeFile("database.sqlite", UserDB);
       
     if(!message.content.startsWith(prefix) || message.author.id == client.user.id) return;
 

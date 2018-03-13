@@ -121,5 +121,6 @@ module.exports = {
                 reason: reason
             });
         }
+        jsonfile.writeFile("database.sqlite", EvidenceDB);
     }
 }
