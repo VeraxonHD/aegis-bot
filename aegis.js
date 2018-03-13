@@ -17,7 +17,10 @@ const sequelize = new Sequelize("database", "user", "password", {
 });
 
 const UserDB = sequelize.define("userdb", {
-    userid: Sequelize.INTEGER,
+    userid: {
+        type: Sequelize.INTEGER,
+        unique: true
+    },
     username: Sequelize.TEXT,
     warnings: Sequelize.INTEGER,
     messagecount: Sequelize.INTEGER,
@@ -123,6 +126,7 @@ client.on("message", message => {
         lastSeenChan: message.channel.name,
         lastSeenGuild: message.guild.name
     }).catch(Sequelize.ValidationError, function (err) {
+        //UserDB.update({messagecount: messagecount + 1}, {where: {userid: message.author.id}});
         sequelize.query(`UPDATE userdbs SET messagecount = messagecount + 1 WHERE userid = '${message.author.id}'`);
         UserDB.update({lastSeenTS: message.createdTimestamp}, {where: {userid: message.author.id}});
         UserDB.update({lastSeenChan: message.channel.name}, {where: {userid: message.author.id}});
