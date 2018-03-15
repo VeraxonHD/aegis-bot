@@ -16,7 +16,6 @@ module.exports = {
         var moderator = message.author.username;
         var ms = require("ms");
         var time = args[1];
-        var jsonfile = require("jsonfile");
         var reason = args.slice(2).join(" ");
         var dateformat = require("dateformat");
         var timeFormatted = dateformat(Date.now() + ms(time), "dd/mm/yyyy HH:MM:ss");
@@ -121,6 +120,5 @@ module.exports = {
                 reason: reason
             });
         }
-        jsonfile.writeFile("database.sqlite", EvidenceDB);
     }
 }

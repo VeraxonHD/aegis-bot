@@ -52,8 +52,6 @@ exports.warnAdd = (userid) =>{
         var success = false;
         return success;
     }
-
-    jsonfile.writeFile("database.sqlite", EvidenceDB);
 };
 
 exports.sendDB = () =>{
@@ -134,8 +132,6 @@ client.on("message", message => {
         UserDB.update({lastSeenChan: message.channel.name}, {where: {userid: message.author.id}});
         UserDB.update({lastSeenGuild: message.guild.name}, {where: {userid: message.author.id}});
     });
-
-    jsonfile.writeFile("database.sqlite", UserDB);
       
     if(!message.content.startsWith(prefix) || message.author.id == client.user.id) return;
 
@@ -217,4 +213,38 @@ client.on("messageDeleteBulk", messages =>{
     }
    
     logchannel.send({embed})
+});
+
+client.on("guildCreate", guild =>{
+    var logchannelIDFinder = guild.channels.find("name", "log-channel").id;
+    if(!logchannelIDFinder){
+      logchannelIDFinder = ""
+    }
+    if(!config[guild.id]){
+      config[guild.id] = {
+            "name": guild.name,
+            "owner": guild.owner.id,
+            "logchannels": {
+                "default": logchannelIDFinder,
+                "moderation": "",
+                "voice": "",
+                "migration": ""
+            },
+            "mutedrole": "muted"
+      }
+  
+      jsonfile.writeFile("config.json", config, {spaces: 4}, err =>{
+        if(!err){
+          const embed = new Discord.RichEmbed()
+            .addField("Welcome to the Aegis Community!", "Thanks for adding Aegis!")
+            .addField("I highly reccomend you check out the following link for info:", "https://veraxonhd.gitbooks.io/shade-modbot/content/first-time-setup.html")
+            .setColor("#30167c");
+          guild.owner.send({embed}).catch(console.log);
+        }else{
+          console.log(err);
+        }
+      })
+    }else{
+      return
+    }
 });

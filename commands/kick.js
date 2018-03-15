@@ -9,7 +9,6 @@ module.exports = {
         var config = require("../config.json");
         var moderator = message.author.tag;
         var mainfile = require("../aegis.js");
-        var jsonfile = require("jsonfile");
         var tgtmember;
         var snowflakeRegexTest = new RegExp("([0-9]{18})");
             if(args[0].length == 18 && snowflakeRegexTest.test(args[0])){
@@ -89,6 +88,5 @@ module.exports = {
                 reason: reason
             })
         }
-        jsonfile.writeFile("database.sqlite", EvidenceDB);
     }
 };

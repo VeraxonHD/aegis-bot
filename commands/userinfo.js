@@ -5,6 +5,7 @@ module.exports = {
     usgae: "userinfo <user>",
     permissions: "MANAGE_MESSAGES",
     execute(message, args, client) {
+        if(!message.member.hasPermission("MANAGE_MESSAGES")) return;
         var mainfile = require("../aegis.js");
         var df = require("dateformat")
         var Discord = require("discord.js")

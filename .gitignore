@@ -2,3 +2,4 @@ node_modules
 database.sqlite
 start.bat
 .env
+config.json
