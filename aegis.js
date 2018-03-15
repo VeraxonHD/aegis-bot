@@ -155,7 +155,7 @@ client.on("message", message => {
 
 client.on("messageDelete", message => {
     var mcontent = message.content;
-    var logchannel = guild.channels.get(config[guild.id].logchannels.default);
+    var logchannel = message.guild.channels.get(config[message.guild.id].logchannels.default);
         if(!logchannel){
             return;
         }
