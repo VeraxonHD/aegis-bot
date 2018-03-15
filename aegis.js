@@ -155,7 +155,10 @@ client.on("message", message => {
 
 client.on("messageDelete", message => {
     var mcontent = message.content;
-    var logchannel = message.guild.channels.get(logChannelRawID);
+    var logchannel = guild.channels.get(config[guild.id].logchannels.default);
+        if(!logchannel){
+            return;
+        }
 
     if(!mcontent){
         mcontent = "I could not find any content. This may have been an image post.";
