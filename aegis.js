@@ -7,7 +7,7 @@ var fs = require("fs");
 var Sequelize = require("sequelize");
 var jsonfile = require("jsonfile");
 
-client.login(config.general.tokenmy);
+client.login(config.general.token);
 
 const sequelize = new Sequelize("database", "user", "password", {
     host: "localhost",
@@ -116,6 +116,9 @@ client.on("ready", () => {
 });
 
 client.on("message", message => {
+
+    if(message.channel.type == "dm") return;
+
     UserDB.create({
         userid: message.author.id,
         username: message.author.tag,
