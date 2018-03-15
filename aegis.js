@@ -7,7 +7,7 @@ var fs = require("fs");
 var Sequelize = require("sequelize");
 var jsonfile = require("jsonfile");
 
-client.login(process.env.TOKEN);
+client.login(config.general.token);
 
 const sequelize = new Sequelize("database", "user", "password", {
     host: "localhost",
