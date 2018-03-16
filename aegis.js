@@ -254,3 +254,45 @@ client.on("guildCreate", guild =>{
       return
     }
 });
+
+client.on("voiceStateUpdate", (oldMember, newMember) => {
+    var embed = new Discord.RichEmbed();
+    var guild = oldMember.guild
+    var user = newMember.user
+  
+      var voicelogchannel = guild.channels.get(config[guild.id].logchannels.voice)
+      if(!voicelogchannel){
+        voicelogchannel = guild.channels.get(config[guild.id].logchannels.default)
+        if(!voicelogchannel){
+            return;
+        }
+      };
+  
+      if(!user){
+        user = newMember.user
+      }
+  
+      if(!oldMember.voiceChannel){
+        embed.addField("User joined a voice channel", `${user.tag} joined ${newMember.voiceChannel.name}.`, true)
+      }else if(!newMember.voiceChannel){
+        embed.addField("User disconnected from voice channels", `${user.tag} left ${oldMember.voiceChannel.name}.`, true)
+      }else{
+        embed.setAuthor(`${user.tag} changed voice channels.`)
+        if((oldMember.mute == true) || (oldMember.deaf == true) || (newMember.mute == true) || (newMember.deaf == true)){
+          return;
+        }else{
+          embed.addField("Old channel", `${oldMember.voiceChannel.name}`, true)
+          embed.addField("New channel", `${newMember.voiceChannel.name}`, true)
+        }
+      }
+  
+      embed.addField("User ID", newMember.id)
+      embed.setColor(newMember.guild.member(client.user).highestRole.color)
+      embed.setTimestamp(newMember.createdAt)
+  
+      var userTagForMessage = user.tag
+      if(!userTagForMessage){
+        userTagForMessage = user.tag
+      }
+      voicelogchannel.send(`**Voice Log Information for: **${userTagForMessage}`, {embed}).catch(console.log)
+  });

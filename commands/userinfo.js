@@ -10,6 +10,9 @@ module.exports = {
         var df = require("dateformat")
         var Discord = require("discord.js")
 
+        if(!args[0]){
+            return message.reply("You must tag or mention a user!")
+        }
         var member;
         var snowflakeRegexTest = new RegExp("([0-9]{18})");
             if(args[0].length == 18 && snowflakeRegexTest.test(args[0])){
