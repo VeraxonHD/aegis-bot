@@ -155,6 +155,9 @@ client.on("message", message => {
 
 client.on("messageDelete", message => {
     var mcontent = message.content;
+    if(mcontent.length > 1023){
+        mcontent = "ERR: Message Content too long to post."
+    }
     var logchannel = message.guild.channels.get(config[message.guild.id].logchannels.default);
         if(!logchannel){
             return;
