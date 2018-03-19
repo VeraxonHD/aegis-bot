@@ -42,6 +42,18 @@ const EvidenceDB = sequelize.define("evidencedb", {
     reason: Sequelize.TEXT
 });
 
+const PartyDB = sequelize.define("partydb", {
+    partyID: {
+        type: Sequelize.TEXT,
+        unique: true
+    },
+    partyName: Sequelize.TEXT,
+    ownerID: Sequelize.INTEGER,
+    voiceChannelID: Sequelize.TEXT,
+    textChannelID: Sequelize.TEXT,
+    categoryID: Sequelize.TEXT
+});
+
 exports.warnAdd = (userid) =>{
     try{
         sequelize.query(`UPDATE userdbs SET warnings = warnings + 1 WHERE userid = '${userid}'`);
@@ -62,11 +74,16 @@ exports.sendEvidenceDB = () =>{
     return EvidenceDB;
 };
 
+exports.sendPartyDB = () =>{
+    return PartyDB;
+}
+
 client.on("ready", () => {
     console.log("Aegis Loaded.");
     console.log(`Prefix: ${prefix}`);
     UserDB.sync();
     EvidenceDB.sync();
+    PartyDB.sync();
     
     client.commands = new Discord.Collection();
     //reads the commands folder (directory) and creates an array with the filenames of the files in there.
@@ -141,6 +158,10 @@ client.on("message", message => {
     const args = message.content.slice(prefix.length).split(" ");
     const commandName = args.shift().toLowerCase();
     const command = client.commands.get(commandName) || client.commands.find(cmd => cmd.alias && cmd.alias.includes(commandName));
+
+    if(config[message.guild.id].disabledCommands.indexOf(commandName) != -1){
+        return message.reply("That command has been disabled by your server administrators.")
+    }
     try{
         command.execute(message, args, prefix, client, Discord);
     }catch(error){
@@ -171,7 +192,8 @@ client.on("messageDelete", message => {
         .setTimestamp(new Date())
         .setFooter("AEGIS-DELETE Event")
         .addField("Their UserID is", message.author.id)
-        .addField("The message content was", mcontent);
+        .addField("The message content was", mcontent)
+        .addField("The channel was", "#" + message.channel.name)
     logchannel.send(`**${message.author.tag}**'s message was deleted!`, {embed});
 });
 
@@ -186,6 +208,7 @@ client.on("messageUpdate", (oldMessage, newMessage) =>{
         .addField("Ther ID is", `${newMessage.author.id}`, false)
         .addField("Old Message Content", oldMessage.content, false)
         .addField("New Message Content", newMessage.content, false)
+        .addField("The channel is", "#" + newMessage.channel.name)
         .setColor("#C3C500")
         .setTimestamp(new Date())
         .setFooter("AEGIS-EDIT Event");
@@ -274,7 +297,7 @@ client.on("voiceStateUpdate", (oldMember, newMember) => {
       if(!user){
         user = newMember.user
       }
-  
+    if(!oldMember.voiceChannel && !newMember.voiceChannel) return;
       if(!oldMember.voiceChannel){
         embed.addField("User joined a voice channel", `${user.tag} joined ${newMember.voiceChannel.name}.`, true)
       }else if(!newMember.voiceChannel){
