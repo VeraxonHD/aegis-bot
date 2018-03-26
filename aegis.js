@@ -335,18 +335,14 @@ client.on("guildMemberRemove", member => {
       embed.setColor("#C50000")
       embed.setThumbnail(member.user.avatarURL)
   
-      var logchannel = message.guild.channels.get(config[message.guild.id].logchannels.migration);
+      var logchannel = guild.channels.get(config[ssage.guild.id].logchannels.migration);
         if(!logchannel){
-            logchannel = message.guild.channels.get(config[message.guild.id].logchannels.default);
+            logchannel = guild.channels.get(config[guild.id].logchannels.default);
             if(!logchannel){
                 return;
             }
         }
   
-      var logchannel = guild.channels.get(config[guild.id].joinlogchannelID)
-      if(!logchannel){
-        logchannel = guild.channels.get(config[guild.id].logchannelID)
-      }
       logchannel.send(`${member.user.tag} left the server`, {embed})
   })
   
@@ -363,18 +359,12 @@ client.on("guildMemberRemove", member => {
       embed.setColor("#24c500")
       embed.setThumbnail(member.user.avatarURL)
   
-      var logchannel = message.guild.channels.get(config[message.guild.id].logchannels.migration);
+      var logchannel = guild.channels.get(config[guild.id].logchannels.migration);
         if(!logchannel){
-            logchannel = message.guild.channels.get(config[message.guild.id].logchannels.default);
+            logchannel = guild.channels.get(config[guild.id].logchannels.default);
             if(!logchannel){
                 return;
             }
         }
-  
-  
-      var logchannel = guild.channels.get(config[guild.id].joinlogchannelID)
-      if(!logchannel){
-        logchannel = guild.channels.get(config[guild.id].logchannelID)
-      }
       logchannel.send(`${member.user.tag} joined the server`, {embed})
   })
