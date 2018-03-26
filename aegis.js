@@ -282,6 +282,7 @@ client.on("guildCreate", guild =>{
 });
 
 client.on("voiceStateUpdate", (oldMember, newMember) => {
+    
     var embed = new Discord.RichEmbed();
     var guild = oldMember.guild
     var user = newMember.user
@@ -321,4 +322,59 @@ client.on("voiceStateUpdate", (oldMember, newMember) => {
         userTagForMessage = user.tag
       }
       voicelogchannel.send(`**Voice Log Information for: **${userTagForMessage}`, {embed}).catch(console.log)
-  });
+});
+
+client.on("guildMemberRemove", member => {
+    var embed = new Discord.RichEmbed()
+    let guild = member.guild
+  
+      embed.addField("User Left", member.user.username)
+      embed.addField("User Discriminator", member.user.discriminator, true)
+      embed.addField("User ID", member.user.id)
+      embed.setTimestamp(new Date())
+      embed.setColor("#C50000")
+      embed.setThumbnail(member.user.avatarURL)
+  
+      var logchannel = message.guild.channels.get(config[message.guild.id].logchannels.migration);
+        if(!logchannel){
+            logchannel = message.guild.channels.get(config[message.guild.id].logchannels.default);
+            if(!logchannel){
+                return;
+            }
+        }
+  
+      var logchannel = guild.channels.get(config[guild.id].joinlogchannelID)
+      if(!logchannel){
+        logchannel = guild.channels.get(config[guild.id].logchannelID)
+      }
+      logchannel.send(`${member.user.tag} left the server`, {embed})
+  })
+  
+  client.on("guildMemberAdd", member => {
+    var embed = new Discord.RichEmbed()
+    let guild = member.guild
+    var ruleschannel = guild.channels.find("name", "server-rules")
+  
+      embed.addField("User Joined", member.user.username, true)
+      embed.addField("User Discriminator", member.user.discriminator, true)
+      embed.addField("User ID", member.user.id)
+      embed.addField("User account creation date", member.user.createdAt)
+      embed.setTimestamp(new Date())
+      embed.setColor("#24c500")
+      embed.setThumbnail(member.user.avatarURL)
+  
+      var logchannel = message.guild.channels.get(config[message.guild.id].logchannels.migration);
+        if(!logchannel){
+            logchannel = message.guild.channels.get(config[message.guild.id].logchannels.default);
+            if(!logchannel){
+                return;
+            }
+        }
+  
+  
+      var logchannel = guild.channels.get(config[guild.id].joinlogchannelID)
+      if(!logchannel){
+        logchannel = guild.channels.get(config[guild.id].logchannelID)
+      }
+      logchannel.send(`${member.user.tag} joined the server`, {embed})
+  })

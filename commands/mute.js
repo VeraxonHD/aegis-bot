@@ -19,6 +19,7 @@ module.exports = {
         var reason = args.slice(2).join(" ");
         var dateformat = require("dateformat");
         var timeFormatted = dateformat(Date.now() + ms(time), "dd/mm/yyyy HH:MM:ss");
+        var jsonfile = require("jsonfile");
 
         if(!message.member.hasPermission("MANAGE_MESSAGES")){
             return message.reply("You do not have permission to perform this command.");

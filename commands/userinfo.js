@@ -39,6 +39,7 @@ module.exports = {
                 .addField("Message Count", data.messagecount)
                 .addField("Warning Count", data.warnings)
                 .addField("Last Seen", `At: ${df(data.lsTime, "dd/mm/yyyy, hh:MM:ss")}\nIn: ${data.lsGuild} (#${data.lsChannel})`)
+                .addField("Joined The Guild", df(member.joinedAt, "dd/mm/yyyy, hh:MM:ss"))
                 .setColor("#00C597")
                 .setFooter("AEGIS-USERINFO Command")
                 .setTimestamp(new Date())
