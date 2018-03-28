@@ -54,6 +54,15 @@ const PartyDB = sequelize.define("partydb", {
     categoryID: Sequelize.TEXT
 });
 
+const StarboardDB = sequelize.define("starboarddb", {
+    messageid: {
+        type: Sequelize.TEXT,
+        unique: true
+    },
+    adder: Sequelize.TEXT,
+    time: Sequelize.INTEGER
+});
+
 exports.warnAdd = (userid) =>{
     try{
         sequelize.query(`UPDATE userdbs SET warnings = warnings + 1 WHERE userid = '${userid}'`);
@@ -84,6 +93,7 @@ client.on("ready", () => {
     UserDB.sync();
     EvidenceDB.sync();
     PartyDB.sync();
+    StarboardDB.sync();
     
     client.commands = new Discord.Collection();
     //reads the commands folder (directory) and creates an array with the filenames of the files in there.
@@ -248,10 +258,18 @@ client.on("messageDeleteBulk", messages =>{
 });
 
 client.on("guildCreate", guild =>{
+    const embed = new Discord.RichEmbed()
+        .addField("Welcome to the Aegis Community!", "Thanks for adding Aegis!")
+        .addField("If you need assistance, the best place to get it is on the offical support hub", "https://discord.gg/9KpYRme")
+        .setColor("#30167c");
+    
     var logchannelIDFinder = guild.channels.find("name", "log-channel").id;
     if(!logchannelIDFinder){
-      logchannelIDFinder = ""
-    }
+      guild.createChannel("log-channel", "text").then(chan => {
+          logchannelIDFinder = chan.id;
+          embed.addField("To start off, I have created a channel named log-channel where all my message logs will go.", "Feel free to set permissions for this channel, as long as I have the ability to READ_MESSAGES and SEND_MESSAGES!");
+      });
+    };
     if(!config[guild.id]){
       config[guild.id] = {
             "name": guild.name,
@@ -267,13 +285,9 @@ client.on("guildCreate", guild =>{
   
       jsonfile.writeFile("config.json", config, {spaces: 4}, err =>{
         if(!err){
-          const embed = new Discord.RichEmbed()
-            .addField("Welcome to the Aegis Community!", "Thanks for adding Aegis!")
-            .addField("I highly reccomend you check out the following link for info:", "https://veraxonhd.gitbooks.io/shade-modbot/content/first-time-setup.html")
-            .setColor("#30167c");
-          guild.owner.send({embed}).catch(console.log);
+            guild.owner.send({embed}).catch(console.log);
         }else{
-          console.log(err);
+            console.log(err);
         }
       })
     }else{
@@ -335,7 +349,7 @@ client.on("guildMemberRemove", member => {
       embed.setColor("#C50000")
       embed.setThumbnail(member.user.avatarURL)
   
-      var logchannel = guild.channels.get(config[ssage.guild.id].logchannels.migration);
+      var logchannel = guild.channels.get(config[guild.id].logchannels.migration);
         if(!logchannel){
             logchannel = guild.channels.get(config[guild.id].logchannels.default);
             if(!logchannel){
@@ -344,9 +358,9 @@ client.on("guildMemberRemove", member => {
         }
   
       logchannel.send(`${member.user.tag} left the server`, {embed})
-  })
+});
   
-  client.on("guildMemberAdd", member => {
+client.on("guildMemberAdd", member => {
     var embed = new Discord.RichEmbed()
     let guild = member.guild
     var ruleschannel = guild.channels.find("name", "server-rules")
@@ -367,4 +381,21 @@ client.on("guildMemberRemove", member => {
             }
         }
       logchannel.send(`${member.user.tag} joined the server`, {embed})
-  })
+});
+
+/*client.on("messageReactionAdd", (messageReacion, user) => {
+    if(messageReacion.emoji.id != ""){
+        return;
+    }else{
+        if(config[message.guild.id].disabledCommands.indexOf("starboard") != -1) return
+        var message = messageReaction.message;
+        StarboardDB.create({
+            messageid: message.id,
+            adder: message.author.id,
+            time: message.createdTimestamp
+        })
+        var sbChan = message.guild.channels.get(config[message.guild.id].logchannels.starboard)
+        if(!sbChan)return;
+        console.log("Yes")
+    }
+});*/
