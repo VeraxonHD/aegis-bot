@@ -262,14 +262,15 @@ client.on("guildCreate", guild =>{
         .addField("Welcome to the Aegis Community!", "Thanks for adding Aegis!")
         .addField("If you need assistance, the best place to get it is on the offical support hub", "https://discord.gg/9KpYRme")
         .setColor("#30167c");
-    
-    var logchannelIDFinder = guild.channels.find("name", "log-channel").id;
-    if(!logchannelIDFinder){
-      guild.createChannel("log-channel", "text").then(chan => {
-          logchannelIDFinder = chan.id;
-          embed.addField("To start off, I have created a channel named log-channel where all my message logs will go.", "Feel free to set permissions for this channel, as long as I have the ability to READ_MESSAGES and SEND_MESSAGES!");
-      });
-    };
+    try {
+        var logchannelIDFinder = guild.channels.find("name", "log-channel").id;
+    } catch (error) {
+        guild.createChannel("log-channel", "text").then(chan => {
+            logchannelIDFinder = chan.id;
+            embed.addField("To start off, I have created a channel named log-channel where all my message logs will go.", "Feel free to set permissions for this channel, as long as I have the ability to READ_MESSAGES and SEND_MESSAGES!");
+        });
+    }
+
     if(!config[guild.id]){
       config[guild.id] = {
             "name": guild.name,
