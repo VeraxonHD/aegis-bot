@@ -190,7 +190,7 @@ client.on("messageDelete", message => {
         mcontent = "ERR: Message Content too long to post."
     }
 
-    if(config[newMessage.guild.id].disabledLogs.indexOf("messageDelete") != -1){
+    if(config[essage.guild.id].disabledLogs.indexOf("messageDelete") != -1){
         return;
     }
     var logchannel = message.guild.channels.get(config[message.guild.id].logchannels.default);
@@ -244,7 +244,7 @@ client.on("messageDeleteBulk", messages =>{
     var logchannel = messages.first().guild.channels.get(config[messages.first().guild.id].logchannels.default);
     if(!logchannel){
             return;
-    }else if(config[newMessage.guild.id].disabledLogs.indexOf("messageDeleteBulk") != -1){
+    }else if(config[message.guild.id].disabledLogs.indexOf("messageDeleteBulk") != -1){
         return;
       }
     const embed = new Discord.RichEmbed()
@@ -283,6 +283,8 @@ client.on("guildCreate", guild =>{
       config[guild.id] = {
             "name": guild.name,
             "owner": guild.owner.id,
+            "disabledCommands": "",
+            "disabledEvents": "",
             "logchannels": {
                 "default": logchannelIDFinder,
                 "moderation": "",
@@ -310,7 +312,7 @@ client.on("voiceStateUpdate", (oldMember, newMember) => {
     var guild = oldMember.guild
     var user = newMember.user
 
-    if(config[newMessage.guild.id].disabledLogs.indexOf("voiceStateUpdate") != -1){
+    if(config[guild.id].disabledLogs.indexOf("voiceStateUpdate") != -1){
         return;
     }
   
@@ -355,7 +357,7 @@ client.on("guildMemberRemove", member => {
     var embed = new Discord.RichEmbed()
     let guild = member.guild
 
-    if(config[newMessage.guild.id].disabledLogs.indexOf("guildMemberRemove") != -1){
+    if(config[guild.id].disabledLogs.indexOf("guildMemberRemove") != -1){
         return;
     }
   
@@ -382,7 +384,7 @@ client.on("guildMemberAdd", member => {
     let guild = member.guild
     var ruleschannel = guild.channels.find("name", "server-rules")
 
-    if(config[newMessage.guild.id].disabledLogs.indexOf("guildMemberAdd") != -1){
+    if(config[guild.id].disabledLogs.indexOf("guildMemberAdd") != -1){
         return;
     }
   
