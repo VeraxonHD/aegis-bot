@@ -189,6 +189,10 @@ client.on("messageDelete", message => {
     if(mcontent.length > 1023){
         mcontent = "ERR: Message Content too long to post."
     }
+
+    if(config[newMessage.guild.id].disabledLogs.indexOf("messageDelete") != -1){
+        return;
+    }
     var logchannel = message.guild.channels.get(config[message.guild.id].logchannels.default);
         if(!logchannel){
             return;
@@ -207,10 +211,12 @@ client.on("messageDelete", message => {
     logchannel.send(`**${message.author.tag}**'s message was deleted!`, {embed});
 });
 
-client.on("messageUpdate", (oldMessage, newMessage) =>{
+client.on("messageUpdate", (oldMessage, newMessage) => {
     if(oldMessage.content.length == 0 || oldMessage.author.id === client.user.id || oldMessage.content == newMessage.content){
         return;
       }else if(newMessage.content.length == 0 || newMessage.author.id === client.user.id){
+        return;
+      }else if(config[newMessage.guild.id].disabledLogs.indexOf("messageUpdate") != -1){
         return;
       }
       var guild = newMessage.guild;
@@ -238,7 +244,9 @@ client.on("messageDeleteBulk", messages =>{
     var logchannel = messages.first().guild.channels.get(config[messages.first().guild.id].logchannels.default);
     if(!logchannel){
             return;
-    }
+    }else if(config[newMessage.guild.id].disabledLogs.indexOf("messageDeleteBulk") != -1){
+        return;
+      }
     const embed = new Discord.RichEmbed()
         .addField("Bulk Delete Log", `${messages.size} messages bulk deleted from #${messages.first().channel.name}`)
         .setColor("#C50000")
@@ -301,6 +309,10 @@ client.on("voiceStateUpdate", (oldMember, newMember) => {
     var embed = new Discord.RichEmbed();
     var guild = oldMember.guild
     var user = newMember.user
+
+    if(config[newMessage.guild.id].disabledLogs.indexOf("voiceStateUpdate") != -1){
+        return;
+    }
   
       var voicelogchannel = guild.channels.get(config[guild.id].logchannels.voice)
       if(!voicelogchannel){
@@ -342,6 +354,10 @@ client.on("voiceStateUpdate", (oldMember, newMember) => {
 client.on("guildMemberRemove", member => {
     var embed = new Discord.RichEmbed()
     let guild = member.guild
+
+    if(config[newMessage.guild.id].disabledLogs.indexOf("guildMemberRemove") != -1){
+        return;
+    }
   
       embed.addField("User Left", member.user.username)
       embed.addField("User Discriminator", member.user.discriminator, true)
@@ -365,6 +381,10 @@ client.on("guildMemberAdd", member => {
     var embed = new Discord.RichEmbed()
     let guild = member.guild
     var ruleschannel = guild.channels.find("name", "server-rules")
+
+    if(config[newMessage.guild.id].disabledLogs.indexOf("guildMemberAdd") != -1){
+        return;
+    }
   
       embed.addField("User Joined", member.user.username, true)
       embed.addField("User Discriminator", member.user.discriminator, true)
