@@ -9,8 +9,14 @@ module.exports = {
         const data = [];
         const embed = new Discord.RichEmbed();
         var commandName = args[0];
-            if(!commandName){
-                message.reply("Please specify a command to get help on.")
+            if(!args[0]){
+                var commandlist = [];
+                var counter = 0
+                fs.readdirSync("./commands").forEach(command => {
+                    commandlist[counter] = " " + command.slice(0, command.indexOf("."))
+                    counter++
+                })
+                message.reply(`Here are a list of commands:**\n${commandlist}**\nTo get detailed help, use "!!help <command name>"`)
             }else{
                 const command = client.commands.get(commandName);
                 if(!command){

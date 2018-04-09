@@ -190,7 +190,7 @@ client.on("messageDelete", message => {
         mcontent = "ERR: Message Content too long to post."
     }
 
-    if(config[essage.guild.id].disabledLogs.indexOf("messageDelete") != -1){
+    if(config[message.guild.id].disabledLogs.indexOf("messageDelete") != -1){
         return;
     }
     var logchannel = message.guild.channels.get(config[message.guild.id].logchannels.default);
@@ -244,7 +244,7 @@ client.on("messageDeleteBulk", messages =>{
     var logchannel = messages.first().guild.channels.get(config[messages.first().guild.id].logchannels.default);
     if(!logchannel){
             return;
-    }else if(config[message.guild.id].disabledLogs.indexOf("messageDeleteBulk") != -1){
+    }else if(config[messages.first().guild.id].disabledLogs.indexOf("messageDeleteBulk") != -1){
         return;
       }
     const embed = new Discord.RichEmbed()
@@ -284,7 +284,7 @@ client.on("guildCreate", guild =>{
             "name": guild.name,
             "owner": guild.owner.id,
             "disabledCommands": "",
-            "disabledEvents": "",
+            "disabledLogs": "",
             "logchannels": {
                 "default": logchannelIDFinder,
                 "moderation": "",
