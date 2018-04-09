@@ -104,6 +104,8 @@ client.on("ready", () => {
         client.commands.set(commandFile.name, commandFile);
     });
 
+    client.user.setActivity("!!help | Don't DM me.")
+
     client.setInterval(() => {
         for(var i in mutes){
           var time = mutes[i].time;
@@ -255,8 +257,10 @@ client.on("messageDeleteBulk", messages =>{
     var i = 0
     if(messages.size < 25){
         messages.forEach(element => {
+            var content = element.content
+            if(!element.content){content = "No Content"}
             i++;
-            embed.addField(`Message: ${i} - ${element.author.tag}`, element.content);
+            embed.addField(`Message: ${i} - ${element.author.tag}`, content);
         });
     }else{
         embed.addField("Could not add message information.", "Bulk Delete exceeded 25 fields.");
