@@ -214,7 +214,7 @@ client.on("messageDelete", message => {
 });
 
 client.on("messageUpdate", (oldMessage, newMessage) => {
-    if(oldMessage.content.length == 0 || oldMessage.author.id === client.user.id || oldMessage.content == newMessage.content){
+    if(oldMessage.content.length == 0 || oldMessage.author.id === client.user.id || oldMessage.content == newMessage.content || oldMessage.content.length > 1023 || newMessage.content.length > 1023){
         return;
       }else if(newMessage.content.length == 0 || newMessage.author.id === client.user.id){
         return;
