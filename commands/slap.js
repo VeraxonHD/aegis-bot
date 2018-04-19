@@ -6,7 +6,7 @@ module.exports = {
     permissions: "MANAGE_MESSAGES",
     execute(message, args) {
         if(!message.member.hasPermission("MANAGE_MESSAGES")){
-            message.reply("You do not have permission to access that command.")
+           return message.reply("You do not have permission to access that command.")
         }
         if(args[0].length == 18){
             var member = message.guild.members.get(args[0]);

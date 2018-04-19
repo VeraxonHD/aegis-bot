@@ -112,6 +112,7 @@ client.on("ready", () => {
           var guildID = mutes[i].guild;
           var guild = client.guilds.get(guildID);
           var member = guild.members.get(i)
+          if(!member) return
           var mutedRole = guild.roles.find(role => role.name.toLowerCase() === config[guild.id].mutedrole.toLowerCase());
           var logchannel = guild.channels.get(config[guild.id].logchannels.moderator)
             if(!logchannel){
