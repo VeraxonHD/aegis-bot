@@ -17,8 +17,8 @@ module.exports = {
         var snowflakeRegexTest = new RegExp("([0-9]{18})");
             if(args[0].length == 18 && snowflakeRegexTest.test(args[0])){
                 member = message.guild.members.get(args[0]);
-            }else if(message.mentions.users.first()){
-                member = message.mentions.users.first();
+            }else if(message.mentions.members.first()){
+                member = message.mentions.members.first();
             }else{
                 return message.reply("User not found, use their ID or mention.");
             }
@@ -39,7 +39,7 @@ module.exports = {
                 .addField("Message Count", data.messagecount)
                 .addField("Warning Count", data.warnings)
                 .addField("Last Seen", `At: ${df(data.lsTime, "dd/mm/yyyy, hh:MM:ss")}\nIn: ${data.lsGuild} (#${data.lsChannel})`)
-                .addField("Joined The Guild", df(member.joinedAt, "dd/mm/yyyy, hh:MM:ss"))
+                .addField("Joined The Guild", df(member.joinedTimestamp, "dd/mm/yyyy, hh:MM:ss"))
                 .setColor("#00C597")
                 .setFooter("AEGIS-USERINFO Command")
                 .setTimestamp(new Date())

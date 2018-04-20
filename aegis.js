@@ -249,7 +249,7 @@ client.on("messageDeleteBulk", messages =>{
             return;
     }else if(config[messages.first().guild.id].disabledLogs.indexOf("messageDeleteBulk") != -1){
         return;
-      }
+    }
     const embed = new Discord.RichEmbed()
         .addField("Bulk Delete Log", `${messages.size} messages bulk deleted from #${messages.first().channel.name}`)
         .setColor("#C50000")
@@ -260,6 +260,7 @@ client.on("messageDeleteBulk", messages =>{
         messages.forEach(element => {
             var content = element.content
             if(!element.content){content = "No Content"}
+            if(element.content.length > 1023){content = "Too Long to post content."}
             i++;
             embed.addField(`Message: ${i} - ${element.author.tag}`, content);
         });
@@ -330,7 +331,7 @@ client.on("voiceStateUpdate", (oldMember, newMember) => {
       };
   
       if(!user){
-        user = newMember.user
+        user = oldMember.user
       }
     if(!oldMember.voiceChannel && !newMember.voiceChannel) return;
       if(!oldMember.voiceChannel){
@@ -387,7 +388,6 @@ client.on("guildMemberRemove", member => {
 client.on("guildMemberAdd", member => {
     var embed = new Discord.RichEmbed()
     let guild = member.guild
-    var ruleschannel = guild.channels.find("name", "server-rules")
 
     if(config[guild.id].disabledLogs.indexOf("guildMemberAdd") != -1){
         return;
