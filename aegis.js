@@ -427,3 +427,7 @@ client.on("guildMemberAdd", member => {
         console.log("Yes")
     }
 });*/
+
+process.on("unhandledRejection", err => {
+    console.error("Uncaught Promise Error: \n", err);
+  });
