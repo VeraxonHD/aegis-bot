@@ -2,7 +2,7 @@ module.exports = {
     name: "help",
     description: "Gives dynamic help services.",
     alias: ["support", "commands"],
-    usgae: "help [command name]",
+    usage: "help [command name]",
     permissions: "NONE",
     execute(message, args, prefix, client, Discord) {
         var fs = require("fs");
@@ -25,7 +25,7 @@ module.exports = {
                 var name = command.name;
                 var description = command.description;
                 var alias = command.alias;
-                var usgae = command.usgae;
+                var usage = command.usage;
                 var permissions = command.permissions;
 
                 if(!alias || alias.length == 0){
@@ -35,7 +35,7 @@ module.exports = {
                 embed.addField("Description", description, true);
                 embed.addBlankField();
                 embed.addField("Aliases", alias, true);
-                embed.addField("Usage", usgae, true);
+                embed.addField("Usage", usage, true);
                 embed.addField("Permissions", permissions, true);
                 embed.setTimestamp(new Date());
                 embed.setFooter("AEGIS-HELP Command");

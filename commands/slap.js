@@ -2,7 +2,7 @@ module.exports = {
     name: "slap",
     description: "Humiliation!",
     alias: ["pimpslap", "humiliate"],
-    usgae: "slap <userid or mention>",
+    usage: "slap <userid or mention>",
     permissions: "MANAGE_MESSAGES",
     execute(message, args) {
         if(!message.member.hasPermission("MANAGE_MESSAGES")){

@@ -2,7 +2,7 @@ module.exports = {
     name: "userinfo",
     description: "Fetches information from the database on a specific user.",
     alias: ["ui", "info"],
-    usgae: "userinfo <user>",
+    usage: "userinfo <user>",
     permissions: "MANAGE_MESSAGES",
     execute(message, args, client) {
         if(!message.member.hasPermission("MANAGE_MESSAGES")) return;

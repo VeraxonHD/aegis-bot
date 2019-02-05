@@ -2,7 +2,7 @@ module.exports = {
     name: "ban",
     description: "Bans a user from the guild.",
     alias: [],
-    usgae: "ban <userid/mention> [reason]",
+    usage: "ban <userid/mention> [reason]",
     permissions: "BAN_MEMBERS",
     execute(message, args, client) {
         var Discord = require("discord.js");

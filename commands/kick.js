@@ -2,7 +2,7 @@ module.exports = {
     name: "kick",
     description: "Kick a user from the guild.",
     alias: [],
-    usgae: "kick <userid/mention> [reason]",
+    usage: "kick <userid/mention> [reason]",
     permissions: "KICK_MEMBERS",
     execute(message, args) {
         var Discord = require("discord.js");

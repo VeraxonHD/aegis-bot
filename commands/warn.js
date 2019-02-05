@@ -2,7 +2,7 @@ module.exports = {
     name: "warn",
     description: "Adds a Warning to a user.",
     alias: "none",
-    usgae: "warn <user by id or mention>",
+    usage: "warn <user by id or mention>",
     permissions: "MANAGE_MESSAGES",
     execute(message, args) {
         var mainfile = require("../aegis.js");

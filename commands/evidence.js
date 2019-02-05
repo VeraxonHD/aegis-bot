@@ -2,7 +2,7 @@ module.exports = {
     name: "evidence",
     description: "Post-humously add warn evidence via Case ID",
     alias: ["addevidence", "newevidence"],
-    usgae: "warnevidence + uploaded image",
+    usage: "warnevidence + uploaded image",
     permissions: "MANAGE_MESSAGES",
     execute(message, args) {
         var Discord = require("discord.js")

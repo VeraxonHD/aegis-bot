@@ -2,7 +2,7 @@ module.exports = {
     name: "party",
     description: "Generates channels and other gubbins for parties!",
     alias: ["lobby", "newparty", "group"],
-    usgae: "party <create/invite/delete/kick> <(name: create) (mention/id: invite/kick)>",
+    usage: "party <create/invite/delete/kick> <(name: create) (mention/id: invite/kick)>",
     permissions: "NONE",
     execute(message, args) {
         var db = require("../aegis.js").sendPartyDB();

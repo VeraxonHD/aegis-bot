@@ -2,7 +2,7 @@ module.exports = {
     name: "tag",
     description: "Custom command handling",
     alias: ["cc", "custcom"],
-    usgae: "tag [name|create|delete|list] (create/delete)[name] (create)[content]",
+    usage: "tag [name|create|delete|list] (create/delete)[name] (create)[content]",
     permissions: "(create/delete)[MANAGE_MESSAGES] (view/list)[NONE]",
     execute(message, args, Tags) {
         var cmdType = args[0];

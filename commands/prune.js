@@ -2,7 +2,7 @@ module.exports = {
   name: "prune",
   description: "Deletes messages in bulk",
   alias: ["purge", "bulkdelete", "delete", "del"],
-  usgae: "prune <mentionable user>",
+  usage: "prune <mentionable user>",
   permissions: "MANAGE_MESSAGES",
   execute(message, args, prefix, client, Discord) {
     const guild = message.guild

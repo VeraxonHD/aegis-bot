@@ -2,7 +2,7 @@ module.exports = {
     name: "case",
     description: "Fetches cases and evidence against a user.",
     alias: ["history", "viewcases"],
-    usgae: "case <user>",
+    usage: "case <user>",
     permissions: "NONE",
     execute(message, args) {
         var mainfile = require("../aegis.js");

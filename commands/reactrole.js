@@ -57,7 +57,7 @@ module.exports = {
                             //Append the information to the reactroles object
                             reactroles[messageid][emojiid] = roleid;
                             //Write the reactroles object to the file
-                            jsonfile.writeFile("../reactroles.json", reactroles, {spaces: 4}, err =>{
+                            jsonfile.writeFile("./reactroles.json", reactroles, {spaces: 4}, err =>{
                                 //If a success, end of module. Send the success to the user.
                                 if(!err){
                                     return message.reply(`Success! ${roleobj.name} assigned to ${emojiobj.name} on message ${messageid}`);

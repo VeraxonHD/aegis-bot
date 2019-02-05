@@ -2,7 +2,7 @@ module.exports = {
     name: "mute",
     description: "Mutes a user, removing permissions by adding a role.",
     alias: [],
-    usgae: "mute <userid or mention> [reason]",
+    usage: "mute <userid or mention> [reason]",
     permissions: "MANAGE_MESSAGES",
     execute(message, args, client) {
         var guild = message.guild;

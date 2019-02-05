@@ -474,7 +474,7 @@ client.on("messageReactionAdd", (messageReaction, user) =>{
     var message = messageReaction.message;
     if(message.channel.type == "dm") return;
     var member = message.guild.members.get(user.id);
-    var reactroles = require("./util/reactroles.json");
+    var reactroles = require("./reactroles.json");
     /*=================================================================================
     Function Name:          Reaction Self-Service Role Menu - "SelfRole" for short
     Function Description:   This function allows users to assign their own roles.
@@ -511,7 +511,7 @@ client.on("messageReactionRemove", (messageReaction, user) =>{
     var message = messageReaction.message;
     if(message.channel.type == "dm") return;
     var member = message.guild.members.get(user.id);
-    var reactroles = require("./util/reactroles.json");
+    var reactroles = require("./reactroles.json");
     /*=================================================================================
     Function Name:          Anti-SelfRole
     Function Description:   This function allows users to remove the roles, if they
