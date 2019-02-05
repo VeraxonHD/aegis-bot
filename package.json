@@ -14,7 +14,9 @@
     "fs": "0.0.1-security",
     "jsonfile": "^4.0.0",
     "ms": "^2.1.1",
-    "sequelize": "^4.35.0",
-    "sqlite3": "^3.1.13"
+    "sequelize": "^4.42.0",
+    "sql": "^0.78.0",
+    "sqlite": "^3.0.1",
+    "sqlite3": "https://github.com/mapbox/node-sqlite3/tarball/master"
   }
 }

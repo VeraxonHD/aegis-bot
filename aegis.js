@@ -63,6 +63,12 @@ const StarboardDB = sequelize.define("starboarddb", {
     time: Sequelize.INTEGER
 });
 
+const ReactDB = sequelize.define("reactdb", {
+    channelid: Sequelize.INTEGER,
+    messageid: Sequelize.INTEGER,
+    reactions: Sequelize.STRING
+});
+
 exports.warnAdd = (userid) =>{
     try{
         sequelize.query(`UPDATE userdbs SET warnings = warnings + 1 WHERE userid = '${userid}'`);
@@ -87,6 +93,10 @@ exports.sendPartyDB = () =>{
     return PartyDB;
 }
 
+exports.sendReactDB = () =>{
+    return ReactDB;
+}
+
 client.on("ready", () => {
     console.log("Aegis Loaded.");
     console.log(`Prefix: ${prefix}`);
@@ -94,6 +104,7 @@ client.on("ready", () => {
     EvidenceDB.sync();
     PartyDB.sync();
     StarboardDB.sync();
+    ReactDB.sync();
     
     client.commands = new Discord.Collection();
     //reads the commands folder (directory) and creates an array with the filenames of the files in there.
@@ -411,22 +422,119 @@ client.on("guildMemberAdd", member => {
       logchannel.send(`${member.user.tag} joined the server`, {embed})
 });
 
-/*client.on("messageReactionAdd", (messageReacion, user) => {
-    if(messageReacion.emoji.id != ""){
-        return;
+const events = {
+	MESSAGE_REACTION_ADD: 'messageReactionAdd',
+	MESSAGE_REACTION_REMOVE: 'messageReactionRemove',
+};
+
+/*=====================================================================================
+Event Name:         raw
+Event Description:  Fired when any of the events from the above object are called.
+                    This allows for asynchronous handling and is useful for adding
+                    different reactionEmoji for use with menus and other such inputs.
+=====================================================================================*/
+
+client.on('raw', async event => {
+	// `event.t` is the raw event name
+	if (!events.hasOwnProperty(event.t)) return;
+
+	const { d: data } = event;
+	const user = client.users.get(data.user_id);
+	const channel = client.channels.get(data.channel_id) || await user.createDM();
+
+	// if the message is already in the cache, don't re-emit the event
+	if (channel.messages.has(data.message_id)) return;
+	const message = await channel.fetchMessage(data.message_id);
+
+	// custom emojis reactions are keyed in a `name:ID` format, while unicode emojis are keyed by names
+	const emojiKey = (data.emoji.id) ? `${data.emoji.name}:${data.emoji.id}` : data.emoji.name;
+	const reaction = message.reactions.get(emojiKey);
+
+	client.emit(events[event.t], reaction, user);
+});
+//END EVENT raw
+
+/*=====================================================================================
+Event Name:         error
+Event Description:  Fired when an Error occurs
+=====================================================================================*/
+
+client.on("error", error =>{
+    //Send the error message to console
+    console.log(`Error occured at ${error.fileName} line ${error.lineNumber}: ${error.message}`);
+});
+//END EVENT error
+
+/*=====================================================================================
+Event Name:         messageReactionAdd
+Event Description:  Fired when a message recieves a new reaction Emoji
+=====================================================================================*/
+
+client.on("messageReactionAdd", (messageReaction, user) =>{
+    var message = messageReaction.message;
+    if(message.channel.type == "dm") return;
+    var member = message.guild.members.get(user.id);
+    var reactroles = require("./util/reactroles.json");
+    /*=================================================================================
+    Function Name:          Reaction Self-Service Role Menu - "SelfRole" for short
+    Function Description:   This function allows users to assign their own roles.
+                            This is part of my client's ethos to add automation to the
+                            server and alleviate stress on moderators.
+                            Users may pick from a list of roles that allow them to LFG
+                            easier, or access opt-in channels.
+    =================================================================================*/
+    if(!reactroles[message.id]){
+        return
     }else{
-        if(config[message.guild.id].disabledCommands.indexOf("starboard") != -1) return
-        var message = messageReaction.message;
-        StarboardDB.create({
-            messageid: message.id,
-            adder: message.author.id,
-            time: message.createdTimestamp
-        })
-        var sbChan = message.guild.channels.get(config[message.guild.id].logchannels.starboard)
-        if(!sbChan)return;
-        console.log("Yes")
+        try{
+            if(reactroles[message.id][messageReaction.emoji.id]){
+                try{
+                    var role = message.guild.roles.get(reactroles[message.id][messageReaction.emoji.id])
+                    member.addRole(role)
+                }catch(err){
+                    console.log("An error occured trying to add the role \n"+err)
+                }
+            }
+        }catch(err){
+            console.log("That emoji does not exist \n"+err)
+        }
     }
-});*/
+});
+//END EVENT messageReactionAdd
+
+/*=====================================================================================
+Event Name:         messageReactionRemove
+Event Description:  Fired when a message loses a reaction Emoji (i.e it is removed).
+=====================================================================================*/
+
+client.on("messageReactionRemove", (messageReaction, user) =>{
+    var message = messageReaction.message;
+    if(message.channel.type == "dm") return;
+    var member = message.guild.members.get(user.id);
+    var reactroles = require("./util/reactroles.json");
+    /*=================================================================================
+    Function Name:          Anti-SelfRole
+    Function Description:   This function allows users to remove the roles, if they
+                            have assigned them using the SelfRole function.
+    =================================================================================*/
+    if(!reactroles[message.id]){
+        return
+    }else{
+        try{
+            if(reactroles[message.id][messageReaction.emoji.id]){
+                try{
+                    var role = message.guild.roles.get(reactroles[message.id][messageReaction.emoji.id])
+                    member.removeRole(role)
+                }catch(err){
+                    console.log("An error occured trying to add the role \n"+err)
+                }
+            }
+        }catch(err){
+            console.log("That emoji does not exist \n"+err)
+        }
+    }
+});
+//END EVENT messageReactionRemove
 
 process.on("unhandledRejection", err => {
     console.error("Uncaught Promise Error: \n", err);
