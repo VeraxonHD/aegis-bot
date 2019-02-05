@@ -2,7 +2,21 @@
   "name": "aegis-bot",
   "version": "1.0.0",
   "description": "a discord bot",
-  "main": "index.js",
+  "main": "aegis.js",
   "author": "VeraxonHD",
-  "license": "ISC"
+  "license": "ISC",
+  "scripts": {
+    "start": "node aegis.js"
+  },
+  "dependencies": {
+    "dateformat": "^3.0.3",
+    "discord.js": "11.3.2",
+    "fs": "0.0.1-security",
+    "jsonfile": "^4.0.0",
+    "ms": "^2.1.1",
+    "sequelize": "^4.42.0",
+    "sql": "^0.78.0",
+    "sqlite": "^3.0.1",
+    "sqlite3": "https://github.com/mapbox/node-sqlite3/tarball/master"
+  }
 }
