@@ -20,6 +20,9 @@ module.exports = {
         const fs = require("fs");
         const reactroles = require("../reactroles.json");
         const jsonfile = require("jsonfile");
+        var Discord = require("discord.js");
+        var client = require("../aegis.js").sendClient();
+
         if(!args[0]){
             message.reply("You are missing the **operation** argument (create/add/update/delete)"); 
         }else if(args[0] == "create"){
@@ -37,14 +40,18 @@ module.exports = {
                 message.reply("You are missing the **Role ID** argument.");
             }else{
                 //Init Variables
-                var messagereadable = args[1];
+                var messageUnique = args[1];
                 var messagecontent = args.slice(2).join(" ");
 
-                if(reactroles[messagereadable]){
-                    return message.reply("That Readable Message ID already exists. Please choose another.");
+                if(reactroles[messageUnique]){
+                    return message.reply("That Unique Message ID already exists. Please choose another.");
                 }else{
-                    message.channel.send(messagecontent).then(msg =>{
-                        reactroles[messagereadable] = {
+                    var embed = new Discord.RichEmbed()
+                        .setAuthor(messagecontent)
+                        .setFooter(`uid: ${messageUnique}`)
+                        .setColor("#42f4c8");
+                    message.channel.send({embed}).then(msg =>{
+                        reactroles[messageUnique] = {
                             messageid: msg.id,
                             channelid: msg.channel.id
                         }
@@ -52,7 +59,7 @@ module.exports = {
                         jsonfile.writeFile("./reactroles.json", reactroles, {spaces: 4}, err =>{
                             //If a success, end of module. Send the success to the user.
                             if(!err){
-                                return message.reply(`Success! You have created ${messagereadable} with content ${messagecontent}`);
+                                return message.reply(`Success! You have created ${messageUnique} with content ${messagecontent}`);
                             //If not, send the user an error message and print the error details to console for analysis.
                             }else{
                                 console.log(err)
@@ -63,7 +70,7 @@ module.exports = {
                 }
             }
         }else if(args[0] == "add"){
-            var messageUnique = args[1]
+            var messageUnique = args[1];
             var emoji = args[2];
             var role = message.mentions.roles.first();
 
@@ -77,12 +84,38 @@ module.exports = {
                 message.reply("You are missing the **Role (mentionable)** argument.");
             }else{
                 if(!reactroles[messageUnique]){
-                    message.reply("That Unique Message ID does not exist. Try creating it using a!reactrole create")
+                    message.reply("That Unique Message ID does not exist. Try creating it using a!reactrole create");
                 }else{
-                    var emojiid = client.emojis //finish
-                    console.log(emojiid)
-                    var roleid = role.id;
-                    console.log(roleid)
+                    
+                    try{
+                        emoji = emoji.split(":")[1];
+                        var emojiid = client.emojis.find(val => val.name === emoji).id ;//finish
+                        try{
+                            var roleid = role.id;
+                            reactroles[messageUnique][emojiid] = roleid;
+
+                            jsonfile.writeFile("./reactroles.json", reactroles, {spaces: 4}, err =>{
+                                //If a success, end of module. Send the success to the user.
+                                if(!err){
+                                    message.guild.channels.get(reactroles[messageUnique].channelid).fetchMessage(reactroles[messageUnique].messageid).then(msg =>{
+                                        msg.react(client.emojis.get(emojiid))
+                                    })
+                                    return message.reply(`Success! You have added **${emoji}** to role **${role.name}** on message **${messageUnique}**`);
+                                //If not, send the user an error message and print the error details to console for analysis.
+                                }else{
+                                    console.log(err)
+                                    return message.reply("There was an error in this request, due to a failure to write to file. Please try again later.");
+                                }
+                            });
+
+                        }catch(err){
+                            console.log(err);
+                            return message.reply("Could not find that role. Please ensure you are mentioning the role directly.");
+                        }
+                    }catch(err){
+                        console.log(err);
+                        return message.reply("Could not find that emoji. Please try again with a different emoji.");
+                    }
                 }
             }
         }

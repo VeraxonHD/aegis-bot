@@ -97,6 +97,10 @@ exports.sendReactDB = () =>{
     return ReactDB;
 }
 
+exports.sendClient = () =>{
+    return client;
+}
+
 client.on("ready", () => {
     console.log("Aegis Loaded.");
     console.log(`Prefix: ${prefix}`);
@@ -105,6 +109,8 @@ client.on("ready", () => {
     PartyDB.sync();
     StarboardDB.sync();
     ReactDB.sync();
+
+    //console.log(client.emojis)
     
     client.commands = new Discord.Collection();
     //reads the commands folder (directory) and creates an array with the filenames of the files in there.
@@ -115,7 +121,7 @@ client.on("ready", () => {
         client.commands.set(commandFile.name, commandFile);
     });
 
-    client.user.setActivity("!!help | Don't DM me.")
+    client.user.setActivity("a!help | Don't DM me.")
 
     client.setInterval(() => {
         for(var i in mutes){
@@ -483,20 +489,20 @@ client.on("messageReactionAdd", (messageReaction, user) =>{
                             Users may pick from a list of roles that allow them to LFG
                             easier, or access opt-in channels.
     =================================================================================*/
-    if(!reactroles[message.id]){
-        return
-    }else{
-        try{
-            if(reactroles[message.id][messageReaction.emoji.id]){
-                try{
-                    var role = message.guild.roles.get(reactroles[message.id][messageReaction.emoji.id])
-                    member.addRole(role)
-                }catch(err){
-                    console.log("An error occured trying to add the role \n"+err)
+    for(var messageUID in reactroles){
+        if(reactroles[messageUID].messageid == message.id){
+            try{
+                if(reactroles[messageUID][messageReaction.emoji.id]){
+                    try{
+                        var role = message.guild.roles.get(reactroles[messageUID][messageReaction.emoji.id])
+                        member.addRole(role)
+                    }catch(err){
+                        console.log("An error occured trying to add the role \n"+err)
+                    }
                 }
-            }
-        }catch(err){
-            console.log("That emoji does not exist \n"+err)
+            }catch(err){
+                console.log("That emoji does not exist \n"+err)
+            }  
         }
     }
 });
@@ -517,20 +523,20 @@ client.on("messageReactionRemove", (messageReaction, user) =>{
     Function Description:   This function allows users to remove the roles, if they
                             have assigned them using the SelfRole function.
     =================================================================================*/
-    if(!reactroles[message.id]){
-        return
-    }else{
-        try{
-            if(reactroles[message.id][messageReaction.emoji.id]){
-                try{
-                    var role = message.guild.roles.get(reactroles[message.id][messageReaction.emoji.id])
-                    member.removeRole(role)
-                }catch(err){
-                    console.log("An error occured trying to add the role \n"+err)
+    for(var messageUID in reactroles){
+        if(reactroles[messageUID].messageid == message.id){
+            try{
+                if(reactroles[messageUID][messageReaction.emoji.id]){
+                    try{
+                        var role = message.guild.roles.get(reactroles[messageUID][messageReaction.emoji.id])
+                        member.removeRole(role)
+                    }catch(err){
+                        console.log("An error occured trying to add the role \n"+err)
+                    }
                 }
-            }
-        }catch(err){
-            console.log("That emoji does not exist \n"+err)
+            }catch(err){
+                console.log("That emoji does not exist \n"+err)
+            }  
         }
     }
 });
