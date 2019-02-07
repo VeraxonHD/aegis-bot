@@ -17,64 +17,105 @@ module.exports = {
     permissions: "ADMINISTRATOR",
     async execute(message, args) {
         //Init dependencies
+        const fs = require("fs");
         const reactroles = require("../reactroles.json");
         const jsonfile = require("jsonfile");
+        var Discord = require("discord.js");
+        var client = require("../aegis.js").sendClient();
 
-        /*Various error trappings
-        1 - checks if the user has admin permissions. if not, returns an invalid permission error
-        2-4 - checks for the existence of proper arguments. returns errors based on whichever is the first non-present argument.
-        */
-        if(!message.member.hasPermission("ADMINISTRATOR")){
-            message.reply("You must have **ADMINISTRATOR** permissions to perform that command.");
-        }else if(!args[0]){
-            message.reply("You are missing the **Message ID** argument.");
-        }else if(!args[1]){
-            message.reply("You are missing the **Emoji ID** argument.");
-        }else if(!args[2]){
-            message.reply("You are missing the **Role ID** argument.");
-        }else{
-            //Init Variables
-            var messageid = args[0];
-            var emojiid = args[1];
-            var roleid = args[2];
-
-            //If this emoji is already assigned on this message, display an error.
-            if(reactroles[messageid] && reactroles[messageid][emojiid]){
-                return message.reply("That role already exists on that message.");
+        if(!args[0]){
+            message.reply("You are missing the **operation** argument (create/add/update/delete)"); 
+        }else if(args[0] == "create"){
+            /*Various error trappings
+            1 - checks if the user has admin permissions. if not, returns an invalid permission error
+            2-4 - checks for the existence of proper arguments. returns errors based on whichever is the first non-present argument.
+            */
+            if(!message.member.hasPermission("ADMINISTRATOR")){
+                message.reply("You must have **ADMINISTRATOR** permissions to perform that command.");
+            }else if(!args[1]){
+                message.reply("You are missing the **Message ID** argument.");
+            }else if(!args[2]){
+                message.reply("You are missing the **Emoji ID** argument.");
+            }else if(!args[3]){
+                message.reply("You are missing the **Role ID** argument.");
             }else{
-                //Try to see if the bot client can access the emoji. If not, catch the error and report it to the user.
-                try{
-                    var emojiobj = message.client.emojis.get(emojiid);
-                    //Try to see if the role exists on the guild. If not, catch the error and report it to the user.
+                //Init Variables
+                var messageUnique = args[1];
+                var messagecontent = args.slice(2).join(" ");
+
+                if(reactroles[messageUnique]){
+                    return message.reply("That Unique Message ID already exists. Please choose another.");
+                }else{
+                    var embed = new Discord.RichEmbed()
+                        .setAuthor(messagecontent)
+                        .setFooter(`uid: ${messageUnique}`)
+                        .setColor("#42f4c8");
+                    message.channel.send({embed}).then(msg =>{
+                        reactroles[messageUnique] = {
+                            messageid: msg.id,
+                            channelid: msg.channel.id
+                        }
+                        //reactroles[messagereadable].channelid = msg.channel.id
+                        jsonfile.writeFile("./reactroles.json", reactroles, {spaces: 4}, err =>{
+                            //If a success, end of module. Send the success to the user.
+                            if(!err){
+                                return message.reply(`Success! You have created ${messageUnique} with content ${messagecontent}`);
+                            //If not, send the user an error message and print the error details to console for analysis.
+                            }else{
+                                console.log(err)
+                                return message.reply("There was an error in this request, due to a failure to write to file. Please try again later.");
+                            }
+                        });
+                    });
+                }
+            }
+        }else if(args[0] == "add"){
+            var messageUnique = args[1];
+            var emoji = args[2];
+            var role = message.mentions.roles.first();
+
+            if(!message.member.hasPermission("ADMINISTRATOR")){
+                message.reply("You must have **ADMINISTRATOR** permissions to perform that command.");
+            }else if(!args[1]){
+                message.reply("You are missing the **Unique Message ID** argument.");
+            }else if(!args[2]){
+                message.reply("You are missing the **Emoji** argument.");
+            }else if(!args[3]){
+                message.reply("You are missing the **Role (mentionable)** argument.");
+            }else{
+                if(!reactroles[messageUnique]){
+                    message.reply("That Unique Message ID does not exist. Try creating it using a!reactrole create");
+                }else{
+                    
                     try{
-                        var roleobj = message.guild.roles.get(roleid);
-                        //Try to assign the emoji to the message and then write the information to the file. If not, send an error message to console.
+                        emoji = emoji.split(":")[1];
+                        var emojiid = client.emojis.find(val => val.name === emoji).id ;//finish
                         try{
-                            //Assign the reaction
-                            message.channel.fetchMessage(messageid).then((msg) => {
-                                msg.react(emojiid);
-                            });
-                            //Append the information to the reactroles object
-                            reactroles[messageid][emojiid] = roleid;
-                            //Write the reactroles object to the file
+                            var roleid = role.id;
+                            reactroles[messageUnique][emojiid] = roleid;
+
                             jsonfile.writeFile("./reactroles.json", reactroles, {spaces: 4}, err =>{
                                 //If a success, end of module. Send the success to the user.
                                 if(!err){
-                                    return message.reply(`Success! ${roleobj.name} assigned to ${emojiobj.name} on message ${messageid}`);
+                                    message.guild.channels.get(reactroles[messageUnique].channelid).fetchMessage(reactroles[messageUnique].messageid).then(msg =>{
+                                        msg.react(client.emojis.get(emojiid))
+                                    })
+                                    return message.reply(`Success! You have added **${emoji}** to role **${role.name}** on message **${messageUnique}**`);
                                 //If not, send the user an error message and print the error details to console for analysis.
                                 }else{
                                     console.log(err)
                                     return message.reply("There was an error in this request, due to a failure to write to file. Please try again later.");
                                 }
                             });
+
                         }catch(err){
                             console.log(err);
+                            return message.reply("Could not find that role. Please ensure you are mentioning the role directly.");
                         }
                     }catch(err){
-                        message.reply("That role does not exist.");
+                        console.log(err);
+                        return message.reply("Could not find that emoji. Please try again with a different emoji.");
                     }
-                }catch(err){
-                    message.reply("I do not have access to adding that emoji. Try adding a different one.");
                 }
             }
         }
