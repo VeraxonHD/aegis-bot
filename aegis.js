@@ -6,6 +6,7 @@ var prefix = config.general.prefix;
 var fs = require("fs");
 var Sequelize = require("sequelize");
 var jsonfile = require("jsonfile");
+var dateformat = require("dateformat");
 
 client.login(config.general.token);
 
@@ -69,6 +70,15 @@ const ReactDB = sequelize.define("reactdb", {
     reactions: Sequelize.STRING
 });
 
+const ModmailDB = sequelize.define("modmaildb", {
+    memberid: {
+        type: Sequelize.STRING,
+        unique: true
+    },
+    channelid: Sequelize.STRING,
+    guildid: Sequelize.STRING
+});
+
 exports.warnAdd = (userid) =>{
     try{
         sequelize.query(`UPDATE userdbs SET warnings = warnings + 1 WHERE userid = '${userid}'`);
@@ -101,6 +111,10 @@ exports.sendClient = () =>{
     return client;
 }
 
+exports.sendModmailDB = () =>{
+    return ModmailDB;
+}
+
 client.on("ready", () => {
     console.log("Aegis Loaded.");
     console.log(`Prefix: ${prefix}`);
@@ -109,6 +123,7 @@ client.on("ready", () => {
     PartyDB.sync();
     StarboardDB.sync();
     ReactDB.sync();
+    ModmailDB.sync();
 
     //console.log(client.emojis)
     
@@ -121,7 +136,15 @@ client.on("ready", () => {
         client.commands.set(commandFile.name, commandFile);
     });
 
-    client.user.setActivity("a!help | Don't DM me.")
+    client.mmcommands = new Discord.Collection();
+    const modcommandDirArray = fs.readdirSync("./mmcommands");
+    modcommandDirArray.forEach(e => {
+        const commandFile = require(`./mmcommands/${e}`);
+        //Adds a record of a command to the collection with key field and the exports module.
+        client.mmcommands.set(commandFile.name, commandFile);
+    });
+
+    client.user.setPresence({ game: { name: 'Development Mode Activated!', type: "Watching" }, status: 'idle' });
 
     client.setInterval(() => {
         for(var i in mutes){
@@ -163,37 +186,137 @@ client.on("ready", () => {
 });
 
 client.on("message", message => {
+    if(message.channel.type != "dm"){
+        UserDB.create({
+            userid: message.author.id,
+            username: message.author.tag,
+            warnings: 0,
+            messagecount: 1,
+            accCreationTS: message.author.createdTimestamp,
+            lastSeenTS: message.createdTimestamp,
+            lastSeenChan: message.channel.name,
+            lastSeenGuild: message.guild.name
+        }).catch(Sequelize.ValidationError, function (err) {
+            //UserDB.update({messagecount: messagecount + 1}, {where: {userid: message.author.id}});
+            sequelize.query(`UPDATE userdbs SET messagecount = messagecount + 1 WHERE userid = '${message.author.id}'`);
+            UserDB.update({lastSeenTS: message.createdTimestamp}, {where: {userid: message.author.id}});
+            UserDB.update({lastSeenChan: message.channel.name}, {where: {userid: message.author.id}});
+            UserDB.update({lastSeenGuild: message.guild.name}, {where: {userid: message.author.id}});
+        });
+          
+        if(!message.content.startsWith(prefix) || message.author.id == client.user.id) return;
+    
+        const args = message.content.slice(prefix.length).split(" ");
+        const commandName = args.shift().toLowerCase();
+        const command = client.commands.get(commandName) || client.commands.find(cmd => cmd.alias && cmd.alias.includes(commandName));
 
+        if(!command){
+            return;
+        }
+    
+        if(config[message.guild.id].disabledCommands.indexOf(commandName) != -1){
+            return message.reply("That command has been disabled by your server administrators.")
+        }
+        try{
+            command.execute(message, args, prefix, client, Discord);
+        }catch(error){
+            console.error(error);
+            const embed = new Discord.RichEmbed()
+                .addField("An Error Occured.", error.message)
+                .setTimestamp(new Date())
+                .setColor("#ff0000");
+            message.channel.send({embed});
+        }
+    }else if (message.channel.type == "dm"){
+        if(message.author.id == client.user.id){
+            return;
+        }
+        //Establish Guild IDs
+        var serveGuild = client.guilds.get("409365548766461952"); //155401990908805120
+        var extGuild = client.guilds.get("409365548766461952"); //155401990908805120
+
+        if(!serveGuild.members.get(message.author.id)){
+            return message.reply("Hey! Modmail is only available on certain servers right now. Sorry for the inconvenience.");
+        }
+
+        //Establish Category Channel ID
+        var catChan = extGuild.channels.get(config[extGuild.id].modmail.categorychannel)
+
+        //Establish Role IDs
+        var modRole = serveGuild.roles.find("name", "Moderator");
+        var adminRole = serveGuild.roles.find("name", "Admin");
+
+        try{
+            //Attempt to find the member in the database
+            ModmailDB.findOne({
+                where:{
+                    memberid: message.author.id
+                }
+            //Then send a message to their thread channel in the specified server
+            }).then(row=>{
+                if(row){
+                    var threadGuild = client.guilds.get(row.guildid);
+                    var threadChan = threadGuild.channels.get(row.channelid);
+                    threadChan.send(`**[${dateformat(new Date(), "HH:MM:ss")}] <${message.author.tag}>** - ${message.content}`);
+                }else{
+                    //Create a new channel
+                    extGuild.createChannel(`${message.author.username}-${message.author.discriminator}`, "text", [{id: extGuild.id, deny: ["VIEW_CHANNEL", "SEND_MESSAGES"]}], "New ModMail Thread.").then(newChan => {
+                        newChan.overwritePermissions(modRole, {
+                            VIEW_CHANNEL: true,
+                            SEND_MESSAGES: true
+                        });
+                        newChan.overwritePermissions(adminRole, {
+                            VIEW_CHANNEL: true,
+                            SEND_MESSAGES: true
+                        });
+                        ModmailDB.create({
+                            memberid: message.author.id,
+                            channelid: newChan.id,
+                            guildid: extGuild.id
+                        })
+                        //set the parent to the category channel
+                        newChan.setParent(catChan);
+                        //send a message notifying online members (@here)
+                        newChan.send(`@here - New ModMail Support Thread opened. Author: \`${message.author.tag}\` Time: \`${dateformat(message.createdAt, "dd/mm/yyyy - hh:MM:ss")}\``);
+                        //Send the first message to the channel with the content that the user sent in the DM to the bot.
+                        newChan.send(`**[${dateformat(new Date(), "HH:MM:ss")}] <${message.author.tag}>** - ${message.content}`);
+                    }).catch(err => console.log(err));
+                }
+            });
+        }catch (err){
+            console.log(err);
+        }
+    }  
+});
+
+//MODMAIL CHANNEL COMMAND HANDLING
+client.on("message", message => {
+    //If the user DMs the bot, disregard it.
     if(message.channel.type == "dm") return;
-
-    UserDB.create({
-        userid: message.author.id,
-        username: message.author.tag,
-        warnings: 0,
-        messagecount: 1,
-        accCreationTS: message.author.createdTimestamp,
-        lastSeenTS: message.createdTimestamp,
-        lastSeenChan: message.channel.name,
-        lastSeenGuild: message.guild.name
-    }).catch(Sequelize.ValidationError, function (err) {
-        //UserDB.update({messagecount: messagecount + 1}, {where: {userid: message.author.id}});
-        sequelize.query(`UPDATE userdbs SET messagecount = messagecount + 1 WHERE userid = '${message.author.id}'`);
-        UserDB.update({lastSeenTS: message.createdTimestamp}, {where: {userid: message.author.id}});
-        UserDB.update({lastSeenChan: message.channel.name}, {where: {userid: message.author.id}});
-        UserDB.update({lastSeenGuild: message.guild.name}, {where: {userid: message.author.id}});
-    });
-      
+    //If the message does not start with the prefix or the bot is the author of the message, disregard it.
     if(!message.content.startsWith(prefix) || message.author.id == client.user.id) return;
 
-    const args = message.content.slice(prefix.length).split(" ");
-    const commandName = args.shift().toLowerCase();
-    const command = client.commands.get(commandName) || client.commands.find(cmd => cmd.alias && cmd.alias.includes(commandName));
+    /*=================================================================================
+    Function Name:          Command Handler
+    Function Description:   Handles the loading and execution of all command modules
+                            quickly and efficiently.
+    =================================================================================*/
 
-    if(config[message.guild.id].disabledCommands.indexOf(commandName) != -1){
-        return message.reply("That command has been disabled by your server administrators.")
+    //Set arguments array equal to each word split by a space character
+    const args = message.content.slice(prefix.length).split(" ");
+    //assign the commandName variable equal to the first argument, and then pop it off of the array.
+    const commandName = args.shift().toLowerCase();
+    //get the command file from the collection established earlier, or find the command if an alias was given instead.
+    const command = client.mmcommands.get(commandName) || client.mmcommands.find(cmd => cmd.alias && cmd.alias.includes(commandName));
+    //If no such command exists, you can disregard it.
+    if(!command){
+        return;
     }
+
+    //Try and execute the command
     try{
         command.execute(message, args, prefix, client, Discord);
+    //If you cannot, throw an error in the channel it was ran in, and log it in the console.
     }catch(error){
         console.error(error);
         const embed = new Discord.RichEmbed()
@@ -201,8 +324,8 @@ client.on("message", message => {
             .setTimestamp(new Date())
             .setColor("#ff0000");
         message.channel.send({embed});
-    }    
-});
+    }  
+})
 
 client.on("messageDelete", message => {
     var mcontent = message.content;
@@ -298,12 +421,14 @@ client.on("guildCreate", guild =>{
     } catch (error) {
         guild.createChannel("log-channel", "text").then(chan => {
             logchannelIDFinder = chan.id;
+            chan.send("This is your new log channel! Please set permissions as you wish!");
             embed.addField("To start off, I have created a channel named log-channel where all my message logs will go.", "Feel free to set permissions for this channel, as long as I have the ability to READ_MESSAGES and SEND_MESSAGES!");
         });
     }
 
     if(!config[guild.id]){
       config[guild.id] = {
+            "guildid": guild.id,
             "name": guild.name,
             "owner": guild.owner.id,
             "disabledCommands": "",
@@ -314,7 +439,11 @@ client.on("guildCreate", guild =>{
                 "voice": "",
                 "migration": ""
             },
-            "mutedrole": "muted"
+            "mutedrole": "muted",
+            "modmail":{
+                "enabled": false,
+                "categorychannel": "",
+            }
       }
   
       jsonfile.writeFile("config.json", config, {spaces: 4}, err =>{
@@ -496,6 +625,7 @@ client.on("messageReactionAdd", (messageReaction, user) =>{
                     try{
                         var role = message.guild.roles.get(reactroles[messageUID][messageReaction.emoji.id])
                         member.addRole(role)
+                        console.log(`Added ${role.name} to ${user.tag}`)
                     }catch(err){
                         console.log("An error occured trying to add the role \n"+err)
                     }
@@ -530,6 +660,7 @@ client.on("messageReactionRemove", (messageReaction, user) =>{
                     try{
                         var role = message.guild.roles.get(reactroles[messageUID][messageReaction.emoji.id])
                         member.removeRole(role)
+                        console.log(`Removed ${role.name} from ${user.tag}`)
                     }catch(err){
                         console.log("An error occured trying to add the role \n"+err)
                     }

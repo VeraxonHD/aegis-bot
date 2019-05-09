@@ -118,6 +118,63 @@ module.exports = {
                     }
                 }
             }
+        }else if(args[0] == "delete"){
+            var messageUnique = args[1];
+            var emojistring = args[2];
+
+            if(!reactroles[messageUnique]){
+                message.reply("That message unique does not exist. Please try another.");
+            }else{
+                try{
+                    message.guild.channels.get(reactroles[messageUnique].channelid).fetchMessage(reactroles[messageUnique].messageid).then(msg =>{
+                        msg.clearReactions();
+                        msg.delete();
+                        delete reactroles[messageUnique];
+                        jsonfile.writeFile("./reactroles.json", reactroles, {spaces: 4}, err =>{
+                            //If a success, end of module. Send the success to the user.
+                            if(!err){
+                                return message.reply(`Success! You have removed **${emoji}** from message **${messageUnique}**`);
+                            //If not, send the user an error message and print the error details to console for analysis.
+                            }else{
+                                console.log(err)
+                                return message.reply("There was an error in this request, due to a failure to write to file. Please try again later.");
+                            }
+                        });
+                    })
+                }catch(err){
+                    console.log(err);
+                }
+                //Deprecated/Not working due to cache issue. May be updated in 12.0? There is a partials branch
+                /*try{
+                    emojistring = emojistring.split(":")[1];
+                    var emoji = client.emojis.find(val => val.name === emojistring);
+                    if(reactroles[messageUnique][emoji.id]){
+                        message.guild.channels.get(reactroles[messageUnique].channelid).fetchMessage(reactroles[messageUnique].messageid).then(msg =>{
+                            var targetreaction = msg.reactions.get(emoji.name+":"+emoji.id);
+                            console.log(targetreaction);
+                            targetreaction.users.forEach(user => {
+                                //delete the users emoji
+                            });
+                        });
+                        jsonfile.writeFile("./reactroles.json", reactroles, {spaces: 4}, err =>{
+                            //If a success, end of module. Send the success to the user.
+                            if(!err){
+                                delete reactroles[messageUnique][emoji.id];
+                                return message.reply(`Success! You have removed **${emoji}** from message **${messageUnique}**`);
+                            //If not, send the user an error message and print the error details to console for analysis.
+                            }else{
+                                console.log(err)
+                                return message.reply("There was an error in this request, due to a failure to write to file. Please try again later.");
+                            }
+                        });
+                    }else{
+                        message.reply("That emoji is not a member of that messageUnique. Try again with a different emoji or messageUnique.");
+                    }
+                }catch(err){
+                    message.reply("That is not a valid emoji. Please try again with a different emoji.");
+                    console.log(err);
+                }*/
+            }
         }
     }
 };

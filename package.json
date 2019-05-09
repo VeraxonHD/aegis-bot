@@ -6,14 +6,15 @@
   "author": "VeraxonHD",
   "license": "ISC",
   "scripts": {
-    "start": "node aegis.js"
+    "start": "nodemon aegis.js"
   },
   "dependencies": {
     "dateformat": "^3.0.3",
-    "discord.js": "11.3.2",
+    "discord.js": "^11.4.2",
     "fs": "0.0.1-security",
     "jsonfile": "^4.0.0",
     "ms": "^2.1.1",
+    "pastebin-js": "^1.0.2",
     "sequelize": "^4.42.0",
     "sql": "^0.78.0",
     "sqlite": "^3.0.1",
