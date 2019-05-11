@@ -22,6 +22,7 @@ module.exports = {
         const jsonfile = require("jsonfile");
         var Discord = require("discord.js");
         var client = require("../aegis.js").sendClient();
+        var util = require("../returndata.js");
 
         if(!args[0]){
             message.reply("You are missing the **operation** argument (create/add/update/delete)"); 
@@ -31,7 +32,7 @@ module.exports = {
             2-4 - checks for the existence of proper arguments. returns errors based on whichever is the first non-present argument.
             */
             if(!message.member.hasPermission("ADMINISTRATOR")){
-                message.reply("You must have **ADMINISTRATOR** permissions to perform that command.");
+                return util.invalidPermissions(message.channel, "reactrole.create", "ADMINISTRATOR");
             }else if(!args[1]){
                 message.reply("You are missing the **Message ID** argument.");
             }else if(!args[2]){
@@ -75,7 +76,7 @@ module.exports = {
             var role = message.mentions.roles.first();
 
             if(!message.member.hasPermission("ADMINISTRATOR")){
-                message.reply("You must have **ADMINISTRATOR** permissions to perform that command.");
+                return util.invalidPermissions(message.channel, "reactrole.add", "ADMINISTRATOR");
             }else if(!args[1]){
                 message.reply("You are missing the **Unique Message ID** argument.");
             }else if(!args[2]){
@@ -124,6 +125,8 @@ module.exports = {
 
             if(!reactroles[messageUnique]){
                 message.reply("That message unique does not exist. Please try another.");
+            }else if(!message.member.hasPermission("ADMINISTRATOR")){
+                return util.invalidPermissions(message.channel, "reactrole.delete", "MANAGE_MESSAGES");
             }else{
                 try{
                     message.guild.channels.get(reactroles[messageUnique].channelid).fetchMessage(reactroles[messageUnique].messageid).then(msg =>{

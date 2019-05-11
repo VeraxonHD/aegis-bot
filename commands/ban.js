@@ -9,6 +9,7 @@ module.exports = {
         var config = require("../config.json");
         var mainfile = require("../aegis.js");
         var moderator = message.author.tag;
+        var util = require("../returndata.js");
         var tgtmember;
         var snowflakeRegexTest = new RegExp("([0-9]{18})");
             if(args[0].length == 18 && snowflakeRegexTest.test(args[0])){
@@ -16,11 +17,11 @@ module.exports = {
             }else if(message.mentions.users.first()){
                 tgtmember = message.mentions.users.first();
             }else{
-                return message.reply("User not found, use their ID or mention.");
+                return util.userNotFound(message.channel, args[0]);
             }
 
         if(!message.member.hasPermission("BAN_MEMBERS")){
-            return message.reply("You do not have permission to perform that command.");
+            return util.invalidPermissions(message.channel, "ban", "BAN_MEMBERS")
         }else if(message.guild.member(tgtmember).bannable == false){
             return message.reply("You cannot ban that user.")
         }

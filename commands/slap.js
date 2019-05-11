@@ -5,8 +5,9 @@ module.exports = {
     usage: "slap <userid or mention>",
     permissions: "MANAGE_MESSAGES",
     execute(message, args) {
+        var util = require("../returndata.js");
         if(!message.member.hasPermission("MANAGE_MESSAGES")){
-           return message.reply("You do not have permission to access that command.")
+            return util.invalidPermissions(message.channel, "slap", "MANAGE_MESSAGES");
         }
         if(args[0].length == 18){
             var member = message.guild.members.get(args[0]);

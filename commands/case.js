@@ -9,6 +9,7 @@ module.exports = {
         var db = mainfile.sendEvidenceDB();
         var Discord = require("discord.js");
         var dateformat = require("dateformat");
+        var util = require("../returndata.js");
 
         var member;
             var snowflakeRegexTest = new RegExp("([0-9]{18})");
@@ -17,7 +18,7 @@ module.exports = {
             }else if(message.mentions.users.first()){
                 member = message.mentions.users.first();
             }else{
-                return message.reply("User not found, use their ID or mention.");
+                return util.userNotFound(message.channel, args[0]);
             }
 
         db.findAll({where:{userid: member.id}}).then(rowarray =>{
