@@ -8,8 +8,9 @@ module.exports = {
         var mainfile = require("../aegis.js");
         var Discord = require("discord.js");
         var config = require("../config.json")
+        var util = require("../returndata.js");
         if(!message.member.hasPermission("MANAGE_MESSAGES")){
-            return message.reply("You do not have permission to perform this command.");
+            return util.invalidPermissions(message.channel, "warn", "MANAGE_MESSAGES");
         }else{
             var logchannel = message.guild.channels.get(config[message.guild.id].logchannels.moderator);
             if(!logchannel){
@@ -27,7 +28,7 @@ module.exports = {
             }else if(message.mentions.users.first()){
                 tgtmember = message.mentions.users.first();
             }else{
-                return message.reply("User not found, use their ID or mention.");
+                return util.userNotFound(message.channel, args[0]);
             }
             var reason = args.slice(1).join(" ");
             if(!reason){

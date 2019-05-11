@@ -5,7 +5,10 @@ module.exports = {
     usage: "userinfo <user>",
     permissions: "MANAGE_MESSAGES",
     execute(message, args, client) {
-        if(!message.member.hasPermission("MANAGE_MESSAGES")) return;
+        var util = require("../returndata.js");
+        if(!message.member.hasPermission("MANAGE_MESSAGES")){
+            return util.invalidPermissions(message.channel, "userinfo", "MANAGE_MESSAGES");
+        }
         var mainfile = require("../aegis.js");
         var df = require("dateformat")
         var Discord = require("discord.js")
@@ -20,7 +23,7 @@ module.exports = {
             }else if(message.mentions.members.first()){
                 member = message.mentions.members.first();
             }else{
-                return message.reply("User not found, use their ID or mention.");
+                return util.userNotFound(message.channel, args[0]);
             }
 
         var database = mainfile.sendDB();

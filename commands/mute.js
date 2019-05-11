@@ -20,9 +20,10 @@ module.exports = {
         var dateformat = require("dateformat");
         var timeFormatted = dateformat(Date.now() + ms(time), "dd/mm/yyyy HH:MM:ss");
         var jsonfile = require("jsonfile");
+        var util = require("../returndata.js");
 
         if(!message.member.hasPermission("MANAGE_MESSAGES")){
-            return message.reply("You do not have permission to perform this command.");
+            return util.invalidPermissions(message.channel, "mute", "MANAGE_MESSAGES")
         }else{
             var logchannel = message.guild.channels.get(config[message.guild.id].logchannels.moderator);
             if(!logchannel){
@@ -40,7 +41,7 @@ module.exports = {
             }else if(message.mentions.users.first()){
                 tgtmember = message.mentions.users.first();
             }else{
-                return message.reply("User not found, use their ID or mention.");
+                return util.userNotFound(message.channel, args[0]);
             }
         }
         
@@ -65,9 +66,9 @@ module.exports = {
       
         jsonfile.writeFile("./mutes.json", mutes, {spaces: 4}, err =>{
           if(!err){
-            message.channel.send("`Eos Success` - User muted successfully.");
+            message.channel.send("`Aegis Success` - User muted successfully.");
           }else{
-            message.channel.send("`Eos Error` - User could not be muted.");
+            message.channel.send("`Aegis Error` - User could not be muted.");
             console.log(err);
           }
         })

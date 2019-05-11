@@ -84,7 +84,7 @@ module.exports = {
                 }else if(message.mentions.users.first()){
                     invitetgt = message.mentions.users.first();
                 }else{
-                    return message.reply("User not found, use their ID or mention.");
+                    return util.userNotFound(message.channel, args[1]);
                 };
                 invitetgt.send(`You have been invited to ${row.partyName} by ${message.author.tag}. You can find the voice channel in ${message.guild.name}'s channels sidebar!`);
                 voicechannel.overwritePermissions(invitetgt.id, {
@@ -137,7 +137,7 @@ module.exports = {
                     }else if(message.mentions.users.first()){
                         tgtmember = message.mentions.users.first();
                     }else{
-                        return message.reply("User not found, use their ID or mention.");
+                        return util.userNotFound(message.channel, args[1]);
                     };
                     message.guild.members.get(tgtmember.id).edit({
                         channel: channelToMove

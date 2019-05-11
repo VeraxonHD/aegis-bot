@@ -49,12 +49,12 @@ module.exports= {
             //Then, with the response from the API, delete the channel and post an embed with the link to the pastebin,
             //the name of the deleted thread and the name of the moderator that deleted it.
             .then(function (data){
-                message.channel.delete()
                 mmDB.destroy({
                     where:{
                         channelid: message.channel.id
                     }
                 })
+                message.channel.delete()
                 .then(delchan => {
                     var embed = new Discord.RichEmbed()
                     .addField("Thread Deleted", delchan.name, true)
