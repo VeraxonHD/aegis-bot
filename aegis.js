@@ -437,10 +437,11 @@ client.on("guildCreate", guild =>{
                 "default": logchannelIDFinder,
                 "moderation": "",
                 "voice": "",
-                "migration": ""
+                "migration": "",
+                "suggestions": ""
             },
             "mutedrole": "muted",
-            "modmail":{
+            "modmail": {
                 "enabled": false,
                 "categorychannel": "",
             }
