@@ -26,7 +26,7 @@ module.exports = {
 
         if(!args[0]){
             message.reply("You are missing the **operation** argument (create/add/update/delete)"); 
-        }else if(args[0] == "create"){
+        }else if(args[0] == "create" || args[0] == "-c"){
             /*Various error trappings
             1 - checks if the user has admin permissions. if not, returns an invalid permission error
             2-4 - checks for the existence of proper arguments. returns errors based on whichever is the first non-present argument.
@@ -70,7 +70,7 @@ module.exports = {
                     });
                 }
             }
-        }else if(args[0] == "add"){
+        }else if(args[0] == "add" || args[0] == "-a"){
             var messageUnique = args[1];
             var emoji = args[2];
             var role = message.mentions.roles.first();
@@ -119,7 +119,7 @@ module.exports = {
                     }
                 }
             }
-        }else if(args[0] == "delete"){
+        }else if(args[0] == "delete" || args[0] == "-d"){
             var messageUnique = args[1];
             var emojistring = args[2];
 

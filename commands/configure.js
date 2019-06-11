@@ -89,7 +89,8 @@ module.exports = {
                         "default",
                         "moderation",
                         "voice",
-                        "migration"
+                        "migration",
+                        "suggestions"
                     ];
                     if(possibleTypes.indexOf(typeOfChannel) == -1){
                         return message.reply(`That is not a valid channel tyle and therefore it cannot be edited.\nTry one of: ${possibleTypes}.`);
