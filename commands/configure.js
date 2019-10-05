@@ -128,8 +128,8 @@ module.exports = {
                 }
             }else if(convar == "autorole" || "-ar"){
 				var pingedRole = message.mentions.roles.first();
-				if(config[guild.id].autorole.enabled == false){
-					config[guild.id].autorole.enabled = true;
+				if(config[message.guild.id].autorole.enabled == false){
+					config[message.guild.id].autorole.enabled = true;
 				}
 				if(!pingedRole){
 					return util.missingArgumentsEmbed(message.channel, "configure", "Mentioned Role", "Final");				
@@ -148,9 +148,9 @@ module.exports = {
 				}
 			}else if(convar == "autoroleenable" || "-are"){
 				if(value == "true"){
-					config[guild.id].autorole.enabled = true;
+					config[message.guild.id].autorole.enabled = true;
 				}else if(value == "false"){
-					config[guild.id].autrole.enabled = false;
+					config[message.guild.id].autrole.enabled = false;
 				}else{
 					return message.reply("Please enter only true or false.");
 				}
