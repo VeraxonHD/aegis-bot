@@ -1,7 +1,7 @@
 module.exports = {
     name: "announce",
     description: "Allows automated pinging of 'restricted' roles e.g Server News.",
-    alias: [""],
+    alias: ["NONE"],
     usage: `announce "<Role Name>" <content> (include the ""s)`,
     permissions: "NONE",
     execute(message, args) {

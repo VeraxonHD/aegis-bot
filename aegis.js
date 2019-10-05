@@ -40,7 +40,7 @@ const EvidenceDB = sequelize.define("evidencedb", {
     typeOf: Sequelize.TEXT,
     dateAdded: Sequelize.INTEGER,
     evidenceLinks: Sequelize.TEXT,
-    reason: Sequelize.TEXT
+    reason: Sequelize.TEXTB
 });
 
 const PartyDB = sequelize.define("partydb", {
@@ -420,7 +420,7 @@ client.on("guildCreate", guild =>{
         var logchannelIDFinder = guild.channels.find("name", "log-channel").id;
     } catch (error) {
         guild.createChannel("log-channel", "text").then(chan => {
-            logchannelIDFinder = chan.id;
+            config[guild.id].logchannels.default = chan.id;
             chan.send("This is your new log channel! Please set permissions as you wish!");
             embed.addField("To start off, I have created a channel named log-channel where all my message logs will go.", "Feel free to set permissions for this channel, as long as I have the ability to READ_MESSAGES and SEND_MESSAGES!");
         });
@@ -444,7 +444,11 @@ client.on("guildCreate", guild =>{
             "modmail": {
                 "enabled": false,
                 "categorychannel": "",
-            }
+            },
+			"autorole": {
+				"enabled": false,
+				"role": ""
+			}
       }
   
       jsonfile.writeFile("config.json", config, {spaces: 4}, err =>{
@@ -533,12 +537,27 @@ client.on("guildMemberRemove", member => {
 });
   
 client.on("guildMemberAdd", member => {
-    var embed = new Discord.RichEmbed()
-    let guild = member.guild
+    var embed = new Discord.RichEmbed();
+    let guild = member.guild;
 
     if(config[guild.id].disabledLogs.indexOf("guildMemberAdd") != -1){
         return;
     }
+	if(config[guild.id].autoRole.enabled == true && config[guild.id].autoRole.role != null){
+		var tryRole = config[guild.id].autoRole.role;
+		var role = guild.roles.get(tryRole);
+		if(!role){
+			console.log('Please add a correct role ID to the autorole config.');
+		}else{
+			try{
+				member.addRole(role);
+				return console.log(`Gave ${member.user.tag} the established autorole ${role.name} successfully`);
+			}catch (e){
+				console.log('Error. Please check below for diagnostics.');
+				return e;
+			}
+		}
+	}
   
       embed.addField("User Joined", member.user.username, true)
       embed.addField("User Discriminator", member.user.discriminator, true)

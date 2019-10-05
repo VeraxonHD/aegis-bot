@@ -126,7 +126,42 @@ module.exports = {
                         }
                     });
                 }
-            }
+            }else if(convar == "autorole" || "-ar"){
+				var pingedRole = message.mentions.roles.first();
+				if(config[guild.id].autorole.enabled == false){
+					config[guild.id].autorole.enabled = true;
+				}
+				if(!pingedRole){
+					return util.missingArgumentsEmbed(message.channel, "configure", "Mentioned Role", "Final");				
+				}
+				if(message.guild.roles.exists("id", pingedRole.id)){
+					config[message.guild.id].autorole.role = pingedRole.id;
+					jsonfile.writeFile("./config.json", config, {spaces: 4}, err =>{
+                        if(err){
+                            return message.reply(`There was an error writing to the file. Please try again later or contact Vex#1337`);
+                        }else{
+                            return message.reply(`Success! Changed Auto Role to **${pingedRole.name}**`);
+                        }
+                    });
+				}else{
+					return message.reply("That is an invalid role. Please mention the role you wish to set as the automatic role.");
+				}
+			}else if(convar == "autoroleenable" || "-are"){
+				if(value == "true"){
+					config[guild.id].autorole.enabled = true;
+				}else if(value == "false"){
+					config[guild.id].autrole.enabled = false;
+				}else{
+					return message.reply("Please enter only true or false.");
+				}
+				jsonfile.writeFile("./config.json", config, {spaces: 4}, err =>{
+                        if(err){
+                            return message.reply(`There was an error writing to the file. Please try again later or contact Vex#1337`);
+                        }else{
+                            return message.reply(`Success! Changed if autoRoler is enabled to **${value}**`);
+                        }
+                });
+			}
         }
     }
 }
