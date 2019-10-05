@@ -40,7 +40,7 @@ const EvidenceDB = sequelize.define("evidencedb", {
     typeOf: Sequelize.TEXT,
     dateAdded: Sequelize.INTEGER,
     evidenceLinks: Sequelize.TEXT,
-    reason: Sequelize.TEXTB
+    reason: Sequelize.TEXT
 });
 
 const PartyDB = sequelize.define("partydb", {
