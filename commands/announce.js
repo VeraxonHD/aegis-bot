@@ -2,10 +2,12 @@ module.exports = {
     name: "announce",
     description: "Allows automated pinging of 'restricted' roles e.g Server News.",
     alias: [""],
-    usage: `announce "<Role Name>" <content> (include the ""s)`,
+    usage: `announce <channel> "<Role Name>" <content> (include the ""s)`,
     permissions: "NONE",
     execute(message, args) {
         var Discord = require("discord.js");
+
+        var tgtChannel = message.mentions.channels.first();
 
         var firstIndex = message.content.indexOf(`"`);
         var secondIndex = message.content.indexOf(`"`, firstIndex + 1);
@@ -24,7 +26,7 @@ module.exports = {
                 .setFooter("AEGIS-ANNOUNCE COMMAND")
                 .setTimestamp(new Date());
             if(role.mentionable){
-                message.channel.send(role, {embed});
+                tgtChannel.send(role, {embed});
             }else{
                 role.setMentionable(true).then(async mentionableRoleTrue =>{
                     await message.channel.send(role, {embed});
