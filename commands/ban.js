@@ -12,6 +12,9 @@ module.exports = {
         var util = require("../returndata.js");
         var tgtmember;
         var snowflakeRegexTest = new RegExp("([0-9]{18})");
+        if(!arg[0]){
+            return util.missingArgumentsEmbed(message.channel, "Ban", "User ID or Mention", "First, followed by an optional ban reason.")
+        }
             if(args[0].length == 18 && snowflakeRegexTest.test(args[0])){
                 tgtmember = message.guild.members.cache.get(args[0]);
             }else if(message.mentions.users.first()){
