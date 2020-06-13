@@ -14,7 +14,7 @@ exports.missingArgumentsEmbed = (channel, command, args, pos) =>{
     //Require the Discord.JS library
     const Discord = require("discord.js");
     //Instantiate a new embed constructor
-    var embed = new Discord.RichEmbed()
+    var embed = new Discord.MessageEmbed()
         //In this case, the Author field is used as a pseudo-title for the embed message,
         .setAuthor("An Error occurred trying to run " + command)
         //Adds a field where the error is described to the user, and includes the function's arguments to give more detail.
@@ -39,7 +39,7 @@ exports.userNotFound = (channel, user) =>{
     //Require the Discord.JS library
     const Discord = require("discord.js");
     //Instantiate a new embed constructor
-    var embed = new Discord.RichEmbed()
+    var embed = new Discord.MessageEmbed()
         //In this case, the Author field is used as a pseudo-title for the embed message,
         .setAuthor("An Error occurred trying to find " + user)
         //Adds a field where the error is described to the user, and includes the function's arguments to give more detail.
@@ -62,7 +62,7 @@ exports.invalidPermissions = (channel, command, permission) =>{
     //Require the Discord.JS library
     const Discord = require("discord.js");
     //Instantiate a new embed constructor
-    var embed = new Discord.RichEmbed()
+    var embed = new Discord.MessageEmbed()
         //In this case, the Author field is used as a pseudo-title for the embed message,
         .setAuthor("An Error occurred trying to run " + command)
         //Adds a field where the error is described to the user, and includes the function's arguments to give more detail.

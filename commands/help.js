@@ -6,7 +6,7 @@ module.exports = {
     permissions: "NONE",
     execute(message, args, prefix, client, Discord) {
         var fs = require("fs");
-        const embed = new Discord.RichEmbed();
+        const embed = new Discord.MessageEmbed();
         var commandName = args[0];
             if(!args[0]){
                 var commandlist = [];

@@ -72,15 +72,15 @@ module.exports = {
                     return message.reply("You don't have a party created. Use `party create <name>` to create one.");
                 }
                 var partyName = row.partyName;
-                var voicechannel = message.guild.channels.get(`${row.voiceChannelID}`);
-                var textchannel = message.guild.channels.get(`${row.textChannelID}`);
+                var voicechannel = message.guild.channels.cache.get(`${row.voiceChannelID}`);
+                var textchannel = message.guild.channels.cache.get(`${row.textChannelID}`);
                 if(!voicechannel || !textchannel){
                     return message.reply("That channel no longer exists. Try `party delete` and then `party create <name>`");
                 }
                 var invitetgt;
                 var snowflakeRegexTest = new RegExp("([0-9]{18})");
                 if(args[1].length == 18 && snowflakeRegexTest.test(args[1])){
-                    invitetgt = message.guild.members.get(args[1]);
+                    invitetgt = message.guild.members.cache.get(args[1]);
                 }else if(message.mentions.users.first()){
                     invitetgt = message.mentions.users.first();
                 }else{
@@ -103,9 +103,9 @@ module.exports = {
                 if(!row){
                     return message.reply("You do not own a party and therefore cannot delete one!")
                 }
-                var voicechannel = message.guild.channels.get(`${row.voiceChannelID}`);
-                var textchannel = message.guild.channels.get(`${row.textChannelID}`);
-                var catchannel = message.guild.channels.get(`${row.categoryID}`);
+                var voicechannel = message.guild.channels.cache.get(`${row.voiceChannelID}`);
+                var textchannel = message.guild.channels.cache.get(`${row.textChannelID}`);
+                var catchannel = message.guild.channels.cache.get(`${row.categoryID}`);
                 voicechannel.delete();
                 textchannel.delete();
                 catchannel.delete();
@@ -120,8 +120,8 @@ module.exports = {
                 if(!row){
                     return message.reply("You do not own a party. Create one with `party create <name>`");
                 }else{
-                    var textchannel = message.guild.channels.get(`${row.textChannelID}`);
-                    var voicechannel = message.guild.channels.get(`${row.voiceChannelID}`);
+                    var textchannel = message.guild.channels.cache.get(`${row.textChannelID}`);
+                    var voicechannel = message.guild.channels.cache.get(`${row.voiceChannelID}`);
                     var channelToMove = message.guild.afkChannel;
                     if(!channelToMove){
                         message.guild.channels.forEach(element => {
@@ -133,13 +133,13 @@ module.exports = {
                     var tgtmember;
                     var snowflakeRegexTest = new RegExp("([0-9]{18})");
                     if(args[1].length == 18 && snowflakeRegexTest.test(args[1])){
-                        tgtmember = message.guild.members.get(args[1]);
+                        tgtmember = message.guild.members.cache.get(args[1]);
                     }else if(message.mentions.users.first()){
                         tgtmember = message.mentions.users.first();
                     }else{
                         return util.userNotFound(message.channel, args[1]);
                     };
-                    message.guild.members.get(tgtmember.id).edit({
+                    message.guild.members.cache.get(tgtmember.id).edit({
                         channel: channelToMove
                     });
                     tgtmember.send(`You were kicked from ${row.partyName} by ${message.author.tag}. You were sent to the nearest available channel.`);

@@ -14,7 +14,7 @@ module.exports = {
 
         if(message.attachments.exists){
             message.attachments.forEach(element => {
-                const attatchembed = new Discord.RichEmbed()
+                const attatchembed = new Discord.MessageEmbed()
                     .setAuthor(`Evidence For Case ${caseid}`)
                     .setImage(element.url)
                     .setFooter(`AEGIS-NEW-EVIDENCE Command | Case ID: ${caseid}`);

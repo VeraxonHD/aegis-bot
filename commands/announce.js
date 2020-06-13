@@ -12,14 +12,14 @@ module.exports = {
         var firstIndex = message.content.indexOf(`"`);
         var secondIndex = message.content.indexOf(`"`, firstIndex + 1);
         var roleName = message.content.substring(firstIndex + 1, secondIndex);
-        var role = message.guild.roles.find(r => r.name == roleName);
+        var role = message.guild.roles.cache.find(r => r.name == roleName);
 
         var content = message.content.substring(secondIndex + 1, message.content.length);
 
         if(!role){
             return message.reply("That Role was not found. Make sure the role name is encapsulated in quotation marks e.g \`\"Role Name\"\`");
         }else{
-            var embed = new Discord.RichEmbed()
+            var embed = new Discord.MessageEmbed()
                 .setAuthor(message.member.displayName, message.author.avatarURL)
                 .setColor("#42f4aa")
                 .addField(`Announcement for ${roleName}`, content)

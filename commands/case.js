@@ -14,7 +14,7 @@ module.exports = {
         var member;
             var snowflakeRegexTest = new RegExp("([0-9]{18})");
             if(args[0].length == 18 &&snowflakeRegexTest.test(args[0])){
-                member = message.guild.members.get(args[0]);
+                member = message.guild.members.cache.get(args[0]);
             }else if(message.mentions.users.first()){
                 member = message.mentions.users.first();
             }else{
@@ -25,7 +25,7 @@ module.exports = {
             if(!rowarray || rowarray.length == 0){
                 return message.reply("That user has no mod logs.");
             }
-            const embed = new Discord.RichEmbed();
+            const embed = new Discord.MessageEmbed();
             rowarray.forEach(element => {
                 embed.addField(`ID: ${element.CaseID}`, `Added: **${dateformat(element.dateAdded, "dd/mm/yyyy, hh:MM:ss")}**\nType: **${element.typeOf}**\nEvidence: ${element.evidenceLinks}\nReason: ${element.reason}`);
             });

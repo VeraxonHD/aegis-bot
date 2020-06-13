@@ -36,7 +36,7 @@ module.exports = {
                         }else{
                             var pos = config[message.guild.id].disabledCommands.indexOf(value);
                             config[message.guild.id].disabledCommands.splice(pos, 1);
-                            return message.reply(`Removed **${value}** from the list of disabled commands successfully!`);
+                            message.reply(`Removed **${value}** from the list of disabled commands successfully!`);
                         }
                         jsonfile.writeFile("./config.json", config, {spaces: 4}, err =>{
                             if(err){
@@ -95,9 +95,9 @@ module.exports = {
                     if(possibleTypes.indexOf(typeOfChannel) == -1){
                         return message.reply(`That is not a valid channel tyle and therefore it cannot be edited.\nTry one of: ${possibleTypes}.`);
                     }else{
-                        if(!message.guild.channels.get(channelID)){
+                        if(!message.guild.channels.cache.get(channelID)){
                             return message.reply("That channel does not exist. Please use a vaild Text Channel Snowflake.");
-                        }else if(message.guild.channels.get(channelID).type != "text"){
+                        }else if(message.guild.channels.cache.get(channelID).type != "text"){
                             return message.reply("That channel is not a text channel. Please use a valid Text Channel Snowflake.");
                         }else{
                             config[message.guild.id].logchannels[typeOfChannel] = channelID;
@@ -112,9 +112,9 @@ module.exports = {
                     }
                 }
             }else if(convar == "modmail" || convar == "-mm"){
-                if(!message.guild.channels.get(value)){
+                if(!message.guild.channels.cache.get(value)){
                     return message.reply("That channel does not exist. Please use a vaild Category Channel Snowflake.");
-                }else if(message.guild.channels.get(value).type != "category"){
+                }else if(message.guild.channels.cache.get(value).type != "category"){
                     return message.reply("That channel is not a category channel. Please use a valid Category Channel Snowflake.");
                 }else{
                     config[message.guild.id].modmail.categorychannel = value;

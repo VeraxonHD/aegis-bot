@@ -1,30 +1,188 @@
 {
     "general": {
         "_comment": "nts: git has assumed there are no changes here, so git update-index --no-assume-unchanged config.json before next push.",
-        "prefix": "a!",
+        "prefix": "t!",
         "ownerID": "213040107278696450",
-        "botID": "416349322620305408"
+        "botID": "416349322620305408",
+        "token": "NDE2MzQ5MzIyNjIwMzA1NDA4.Dztt0Q.VdfmU7BzPjjQ2sKAzvsNmUML_qc"
     },
-    "409365548766461952":{
+    "409365548766461952": {
         "name": "Bomb Crater",
         "owner": "213040107278696450",
+        "disabledCommands": [],
+        "disabledLogs": [],
         "logchannels": {
-            "default": "419089321849520128",
+            "default": "409365588117422100",
             "moderation": "",
             "voice": "",
-            "migration": ""
+            "migration": "",
+            "suggestions": "588109614659272896"
         },
-        "mutedrole": "muted"
+        "mutedrole": "muted",
+        "autorole": {
+            "enabled": false,
+            "role": ""
+        },
+        "modmail": {
+            "enabled": true,
+            "categorychannel": "547415089024860191"
+        }
     },
-    "137719638556540929":{
+    "137719638556540929": {
         "name": "The Division",
         "owner": "166363417823805441",
+        "disabledCommands": [],
+        "disabledLogs": [],
         "logchannels": {
             "default": "405076129196802048",
             "moderation": "150138495774621697",
             "voice": "353793934616559617",
             "migration": "299712887314972673"
         },
-        "mutedrole": "muted"
+        "mutedrole": "muted",
+        "autorole": {
+            "enabled": false,
+            "role": ""
+        },
+        "modmail": {
+            "enabled": false,
+            "categorychannel": ""
+        }
+    },
+    "542045466984972288": {
+        "name": "ASC/NXS Wireframe",
+        "owner": "231847606345662465",
+        "disabledCommands": [],
+        "disabledLogs": [],
+        "logchannels": {
+            "default": "542421968201449492",
+            "moderation": "542421968201449492",
+            "voice": "542421968201449492",
+            "migration": "542421968201449492"
+        },
+        "mutedrole": "muted",
+        "autorole": {
+            "enabled": false,
+            "role": ""
+        },
+        "modmail": {
+            "enabled": false,
+            "categorychannel": ""
+        }
+    },
+    "373828154135019530": {
+        "name": "Ascension",
+        "owner": "231847606345662465",
+        "disabledCommands": [],
+        "disabledLogs": [
+            "messageDelete",
+            "messageUpdate"
+        ],
+        "logchannels": {
+            "default": "373837595890679819",
+            "moderation": "",
+            "voice": "",
+            "migration": ""
+        },
+        "mutedrole": "muted",
+        "autorole": {
+            "enabled": false,
+            "role": ""
+        },
+        "modmail": {
+            "enabled": false,
+            "categorychannel": ""
+        }
+    },
+    "455997009456005122": {
+        "name": "The Nexus | The Division [2]",
+        "owner": "213040107278696450",
+        "disabledCommands": [],
+        "disabledLogs": [],
+        "logchannels": {
+            "default": "457445337045532672",
+            "moderation": "",
+            "voice": "",
+            "migration": ""
+        },
+        "mutedrole": "muted",
+        "autorole": {
+            "enabled": false,
+            "role": ""
+        },
+        "modmail": {
+            "enabled": false,
+            "categorychannel": ""
+        }
+    },
+    "543092425099575296": {
+        "guildid": "543092425099575296",
+        "name": "Avalon II",
+        "owner": "255643617706639360",
+        "disabledCommands": [],
+        "disabledLogs": [],
+        "logchannels": {
+            "moderation": "",
+            "voice": "",
+            "migration": "",
+            "suggestions": ""
+        },
+        "mutedrole": "muted",
+        "autorole": {
+            "enabled": false,
+            "role": ""
+        },
+        "modmail": {
+            "enabled": false,
+            "categorychannel": ""
+        }
+    },
+    "613315776128090123": {
+        "guildid": "613315776128090123",
+        "name": "Har_Family",
+        "owner": "448288221856661504",
+        "disabledCommands": [],
+        "disabledLogs": [],
+        "logchannels": {
+            "moderation": "630042700984352789",
+            "voice": "630042746928758785",
+            "migration": "629341998192525333",
+            "suggestions": "629345729277591564"
+        },
+        "mutedrole": "muted",
+        "autorole": {
+            "enabled": false,
+            "role": ""
+        },
+        "modmail": {
+            "enabled": false,
+            "categorychannel": ""
+        }
+    },
+    "295826007556882432": {
+        "guildid": "295826007556882432",
+        "name": "/r/GTAOnline",
+        "owner": "202915055199715330",
+        "disabledCommands": [],
+        "disabledLogs": [
+            "messageUpdate",
+            "messageDelete"
+        ],
+        "logchannels": {
+            "default": "300841326922956801",
+            "moderation": "",
+            "voice": "",
+            "migration": "",
+            "suggestions": ""
+        },
+        "mutedrole": "muted",
+        "autorole": {
+            "enabled": false,
+            "role": ""
+        },
+        "modmail": {
+            "enabled": false,
+            "categorychannel": "608140886882385921"
+        }
     }
 }

@@ -145,18 +145,19 @@ client.on("ready", () => {
     });
 
     client.user.setPresence({ game: { name: 'Development Mode Activated!', type: "Watching" }, status: 'idle' });
+    //client.user.setPresence({ game: { name: 'Live V2.3.0!', type: "Watching" }, status: 'online' });
 
     client.setInterval(() => {
         for(var i in mutes){
           var time = mutes[i].time;
           var guildID = mutes[i].guild;
-          var guild = client.guilds.get(guildID);
-          var member = guild.members.get(i)
+          var guild = client.guilds.cache.get(guildID);
+          var member = guild.members.cache.get(i)
           if(!member) return
-          var mutedRole = guild.roles.find(role => role.name.toLowerCase() === config[guild.id].mutedrole.toLowerCase());
-          var logchannel = guild.channels.get(config[guild.id].logchannels.moderator)
+          var mutedRole = guild.roles.cache.find(role => role.name.toLowerCase() === config[guild.id].mutedrole.toLowerCase());
+          var logchannel = guild.channels.cache.get(config[guild.id].logchannels.moderator)
             if(!logchannel){
-                logchannel = guild.channels.get(config[guild.id].logchannels.default)
+                logchannel = guild.channels.cache.get(config[guild.id].logchannels.default)
                 if(!logchannel){
                     return;
                 }
@@ -174,7 +175,7 @@ client.on("ready", () => {
               }
             })
     
-            const embed = new Discord.RichEmbed()
+            const embed = new Discord.MessageEmbed()
               .addField("User unmuted", member.displayName)
               .setColor("#00C597")
               .setFooter("AEGIS-MUTE-EXPIRE Event")
@@ -221,7 +222,7 @@ client.on("message", message => {
             command.execute(message, args, prefix, client, Discord);
         }catch(error){
             console.error(error);
-            const embed = new Discord.RichEmbed()
+            const embed = new Discord.MessageEmbed()
                 .addField("An Error Occured.", error.message)
                 .setTimestamp(new Date())
                 .setColor("#ff0000");
@@ -231,21 +232,25 @@ client.on("message", message => {
         if(message.author.id == client.user.id){
             return;
         }
-        //Establish Guild IDs
-        var serveGuild = client.guilds.get("409365548766461952"); //155401990908805120
-        var extGuild = client.guilds.get("409365548766461952"); //155401990908805120
 
-        if(!serveGuild.members.get(message.author.id)){
+        //Establish Guild IDs
+        for(var guild in config){
+            if(config[guild].modmail && config[guild].modmail.enabled == true){
+                var serveGuild = client.guilds.cache.get(guild);
+            }
+        }
+
+        if(!serveGuild){
+            message.channel.send("Sorry, but modmail is currently not active on any guilds. Please contact a mod/admin directly.")
+        }
+
+        if(!serveGuild.members.cache.get(message.author.id)){
             return message.reply("Hey! Modmail is only available on certain servers right now. Sorry for the inconvenience.");
         }
 
         //Establish Category Channel ID
-        var catChan = extGuild.channels.get(config[extGuild.id].modmail.categorychannel)
-
-        //Establish Role IDs
-        var modRole = serveGuild.roles.find("name", "Moderator");
-        var adminRole = serveGuild.roles.find("name", "Admin");
-
+        var catChan = serveGuild.channels.cache.get(config[serveGuild.id].modmail.categorychannel)
+        
         try{
             //Attempt to find the member in the database
             ModmailDB.findOne({
@@ -255,25 +260,34 @@ client.on("message", message => {
             //Then send a message to their thread channel in the specified server
             }).then(row=>{
                 if(row){
-                    var threadGuild = client.guilds.get(row.guildid);
-                    var threadChan = threadGuild.channels.get(row.channelid);
+                    var threadGuild = client.guilds.cache.get(row.guildid);
+                    var threadChan = threadguild.channels.cache.get(row.channelid);
                     threadChan.send(`**[${dateformat(new Date(), "HH:MM:ss")}] <${message.author.tag}>** - ${message.content}`);
                 }else{
                     //Create a new channel
-                    extGuild.createChannel(`${message.author.username}-${message.author.discriminator}`, "text", [{id: extGuild.id, deny: ["VIEW_CHANNEL", "SEND_MESSAGES"]}], "New ModMail Thread.").then(newChan => {
-                        newChan.overwritePermissions(modRole, {
-                            VIEW_CHANNEL: true,
-                            SEND_MESSAGES: true
-                        });
-                        newChan.overwritePermissions(adminRole, {
-                            VIEW_CHANNEL: true,
-                            SEND_MESSAGES: true
-                        });
+                    serveGuild.channels.create(`${message.author.username}-${message.author.discriminator}`, {
+                            type: "text", 
+                            topic: "New ModMail Thread.",
+                            permissionOverwrites: [{id: serveGuild.id, deny: ["VIEW_CHANNEL", "SEND_MESSAGES"]}]
+                        }).then(newChan => {
                         ModmailDB.create({
                             memberid: message.author.id,
                             channelid: newChan.id,
-                            guildid: extGuild.id
+                            guildid: serveGuild.id
                         })
+                        for(var allowedRole in config[serveGuild.id].modmail.allowedRoles){
+                            try{
+                                newChan.overwritePermissions([
+                                    {
+                                        id: allowedRole,
+                                        allow: ["VIEW_CHANNEL", "SEND_MESSAGES"]
+                                    }
+                                ], "Added access for allowed modmail role.");
+                            }catch(err){
+                                console.log(`AEGIS MODMAIL - An invalid modmail access role has been defined for guild ${serveGuild.name}! Skipping...`);
+                            }
+                            
+                        }
                         //set the parent to the category channel
                         newChan.setParent(catChan);
                         //send a message notifying online members (@here)
@@ -319,7 +333,7 @@ client.on("message", message => {
     //If you cannot, throw an error in the channel it was ran in, and log it in the console.
     }catch(error){
         console.error(error);
-        const embed = new Discord.RichEmbed()
+        const embed = new Discord.MessageEmbed()
             .addField("An Error Occured.", error.message)
             .setTimestamp(new Date())
             .setColor("#ff0000");
@@ -336,7 +350,7 @@ client.on("messageDelete", message => {
     if(config[message.guild.id].disabledLogs.indexOf("messageDelete") != -1){
         return;
     }
-    var logchannel = message.guild.channels.get(config[message.guild.id].logchannels.default);
+    var logchannel = message.guild.channels.cache.get(config[message.guild.id].logchannels.default);
         if(!logchannel){
             return;
         }
@@ -344,7 +358,7 @@ client.on("messageDelete", message => {
     if(!mcontent){
         mcontent = "I could not find any content. This may have been an image post.";
     }
-    const embed = new Discord.RichEmbed()
+    const embed = new Discord.MessageEmbed()
         .setColor("#C50000")
         .setTimestamp(new Date())
         .setFooter("AEGIS-DELETE Event")
@@ -363,7 +377,7 @@ client.on("messageUpdate", (oldMessage, newMessage) => {
         return;
       }
       var guild = newMessage.guild;
-      var embed = new Discord.RichEmbed()
+      var embed = new Discord.MessageEmbed()
         .addField("Ther ID is", `${newMessage.author.id}`, false)
         .addField("Old Message Content", oldMessage.content, false)
         .addField("New Message Content", newMessage.content, false)
@@ -372,7 +386,7 @@ client.on("messageUpdate", (oldMessage, newMessage) => {
         .setTimestamp(new Date())
         .setFooter("AEGIS-EDIT Event");
     
-        var logchannel = guild.channels.get(config[guild.id].logchannels.default);
+        var logchannel = guild.channels.cache.get(config[guild.id].logchannels.default);
         if(!logchannel){
             return;
         }
@@ -384,13 +398,13 @@ client.on("messageUpdate", (oldMessage, newMessage) => {
 });
 
 client.on("messageDeleteBulk", messages =>{
-    var logchannel = messages.first().guild.channels.get(config[messages.first().guild.id].logchannels.default);
+    var logchannel = messages.first().guild.channels.cache.get(config[messages.first().guild.id].logchannels.default);
     if(!logchannel){
             return;
     }else if(config[messages.first().guild.id].disabledLogs.indexOf("messageDeleteBulk") != -1){
         return;
     }
-    const embed = new Discord.RichEmbed()
+    const embed = new Discord.MessageEmbed()
         .addField("Bulk Delete Log", `${messages.size} messages bulk deleted from #${messages.first().channel.name}`)
         .setColor("#C50000")
         .setTimestamp(new Date())
@@ -412,7 +426,7 @@ client.on("messageDeleteBulk", messages =>{
 });
 
 client.on("guildCreate", guild =>{
-    const embed = new Discord.RichEmbed()
+    const embed = new Discord.MessageEmbed()
         .addField("Welcome to the Aegis Community!", "Thanks for adding Aegis!")
         .addField("If you need assistance, the best place to get it is on the offical support hub", "https://discord.gg/9KpYRme")
         .setColor("#30167c");
@@ -441,14 +455,15 @@ client.on("guildCreate", guild =>{
                 "suggestions": ""
             },
             "mutedrole": "muted",
+            "autorole": {
+				"enabled": false,
+				"role": ""
+			},
             "modmail": {
                 "enabled": false,
                 "categorychannel": "",
-            },
-			"autorole": {
-				"enabled": false,
-				"role": ""
-			}
+                "allowedRoles": []
+            }
       }
   
       jsonfile.writeFile("config.json", config, {spaces: 4}, err =>{
@@ -465,16 +480,16 @@ client.on("guildCreate", guild =>{
 
 client.on("voiceStateUpdate", (oldMember, newMember) => {
     
-    var embed = new Discord.RichEmbed();
+    var embed = new Discord.MessageEmbed();
     var guild = oldMember.guild
     var user = newMember.user
 
     if(config[guild.id].disabledLogs.indexOf("voiceStateUpdate") != -1){
         return;
     }else{
-        var voicelogchannel = guild.channels.get(config[guild.id].logchannels.voice)
+        var voicelogchannel = guild.channels.cache.get(config[guild.id].logchannels.voice)
         if(!voicelogchannel){
-          voicelogchannel = guild.channels.get(config[guild.id].logchannels.default)
+          voicelogchannel = guild.channels.cache.get(config[guild.id].logchannels.default)
           if(!voicelogchannel){
               return;
           }
@@ -511,7 +526,7 @@ client.on("voiceStateUpdate", (oldMember, newMember) => {
 });
 
 client.on("guildMemberRemove", member => {
-    var embed = new Discord.RichEmbed()
+    var embed = new Discord.MessageEmbed()
     let guild = member.guild
 
     if(config[guild.id].disabledLogs.indexOf("guildMemberRemove") != -1){
@@ -525,9 +540,9 @@ client.on("guildMemberRemove", member => {
       embed.setColor("#C50000")
       embed.setThumbnail(member.user.avatarURL)
   
-      var logchannel = guild.channels.get(config[guild.id].logchannels.migration);
+      var logchannel = guild.channels.cache.get(config[guild.id].logchannels.migration);
         if(!logchannel){
-            logchannel = guild.channels.get(config[guild.id].logchannels.default);
+            logchannel = guild.channels.cache.get(config[guild.id].logchannels.default);
             if(!logchannel){
                 return;
             }
@@ -537,7 +552,7 @@ client.on("guildMemberRemove", member => {
 });
   
 client.on("guildMemberAdd", member => {
-    var embed = new Discord.RichEmbed();
+    var embed = new Discord.MessageEmbed();
     let guild = member.guild;
 
     if(config[guild.id].disabledLogs.indexOf("guildMemberAdd") != -1){
@@ -545,7 +560,7 @@ client.on("guildMemberAdd", member => {
     }
 	if(config[guild.id].autorole.enabled == true && config[guild.id].autorole.role != null){
 		var tryRole = config[guild.id].autorole.role;
-		var role = guild.roles.get(tryRole);
+		var role = guild.roles.cache.get(tryRole);
 		if(!role){
 			console.log('Please add a correct role ID to the autorole config.');
 		}else{
@@ -567,9 +582,9 @@ client.on("guildMemberAdd", member => {
       embed.setColor("#24c500")
       embed.setThumbnail(member.user.avatarURL)
   
-      var logchannel = guild.channels.get(config[guild.id].logchannels.migration);
+      var logchannel = guild.channels.cache.get(config[guild.id].logchannels.migration);
         if(!logchannel){
-            logchannel = guild.channels.get(config[guild.id].logchannels.default);
+            logchannel = guild.channels.cache.get(config[guild.id].logchannels.default);
             if(!logchannel){
                 return;
             }
@@ -594,12 +609,12 @@ client.on('raw', async event => {
 	if (!events.hasOwnProperty(event.t)) return;
 
 	const { d: data } = event;
-	const user = client.users.get(data.user_id);
-	const channel = client.channels.get(data.channel_id) || await user.createDM();
+	const user = client.users.cache.get(data.user_id);
+	const channel = client.channels.cache.get(data.channel_id) || await user.createDM();
 
 	// if the message is already in the cache, don't re-emit the event
-	if (channel.messages.has(data.message_id)) return;
-	const message = await channel.fetchMessage(data.message_id);
+	if (channel.messages.cache.has(data.message_id)) return;
+	const message = await channel.messages.fetch(data.message_id);
 
 	// custom emojis reactions are keyed in a `name:ID` format, while unicode emojis are keyed by names
 	const emojiKey = (data.emoji.id) ? `${data.emoji.name}:${data.emoji.id}` : data.emoji.name;
@@ -628,7 +643,7 @@ Event Description:  Fired when a message recieves a new reaction Emoji
 client.on("messageReactionAdd", (messageReaction, user) =>{
     var message = messageReaction.message;
     if(message.channel.type == "dm") return;
-    var member = message.guild.members.get(user.id);
+    var member = message.guild.members.cache.get(user.id);
     var reactroles = require("./reactroles.json");
     /*=================================================================================
     Function Name:          Reaction Self-Service Role Menu - "SelfRole" for short
@@ -643,7 +658,7 @@ client.on("messageReactionAdd", (messageReaction, user) =>{
             try{
                 if(reactroles[messageUID][messageReaction.emoji.id]){
                     try{
-                        var role = message.guild.roles.get(reactroles[messageUID][messageReaction.emoji.id])
+                        var role = message.guild.roles.cache.get(reactroles[messageUID][messageReaction.emoji.id])
                         member.addRole(role)
                         console.log(`Added ${role.name} to ${user.tag}`)
                     }catch(err){
@@ -666,7 +681,7 @@ Event Description:  Fired when a message loses a reaction Emoji (i.e it is remov
 client.on("messageReactionRemove", (messageReaction, user) =>{
     var message = messageReaction.message;
     if(message.channel.type == "dm") return;
-    var member = message.guild.members.get(user.id);
+    var member = message.guild.members.cache.get(user.id);
     var reactroles = require("./reactroles.json");
     /*=================================================================================
     Function Name:          Anti-SelfRole
@@ -678,7 +693,7 @@ client.on("messageReactionRemove", (messageReaction, user) =>{
             try{
                 if(reactroles[messageUID][messageReaction.emoji.id]){
                     try{
-                        var role = message.guild.roles.get(reactroles[messageUID][messageReaction.emoji.id])
+                        var role = message.guild.roles.cache.get(reactroles[messageUID][messageReaction.emoji.id])
                         member.removeRole(role)
                         console.log(`Removed ${role.name} from ${user.tag}`)
                     }catch(err){

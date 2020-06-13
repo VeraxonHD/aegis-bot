@@ -19,7 +19,7 @@ module.exports = {
         var member;
         var snowflakeRegexTest = new RegExp("([0-9]{18})");
             if(args[0].length == 18 && snowflakeRegexTest.test(args[0])){
-                member = message.guild.members.get(args[0]);
+                member = message.guild.members.cache.get(args[0]);
             }else if(message.mentions.members.first()){
                 member = message.mentions.members.first();
             }else{
@@ -37,7 +37,7 @@ module.exports = {
                 "accCreation": row.accCreationTS,
                 "userid": row.userid
             }
-            const embed = new Discord.RichEmbed()
+            const embed = new Discord.MessageEmbed()
                 .addField("UserID", data.userid)
                 .addField("Message Count", data.messagecount)
                 .addField("Warning Count", data.warnings)

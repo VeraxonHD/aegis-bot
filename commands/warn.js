@@ -12,9 +12,9 @@ module.exports = {
         if(!message.member.hasPermission("MANAGE_MESSAGES")){
             return util.invalidPermissions(message.channel, "warn", "MANAGE_MESSAGES");
         }else{
-            var logchannel = message.guild.channels.get(config[message.guild.id].logchannels.moderator);
+            var logchannel = message.guild.channels.cache.get(config[message.guild.id].logchannels.moderator);
             if(!logchannel){
-                logchannel = message.guild.channels.get(config[message.guild.id].logchannels.default);
+                logchannel = message.guild.channels.cache.get(config[message.guild.id].logchannels.default);
                 if(!logchannel){
                     return message.channel.send("You do not have a logchannel configured. Contact your server owner.");
                 }
@@ -24,7 +24,7 @@ module.exports = {
             var tgtmember;
             var snowflakeRegexTest = new RegExp("([0-9]{18})");
             if(args[0].length == 18 && snowflakeRegexTest.test(args[0])){
-                tgtmember = message.guild.members.get(args[0]);
+                tgtmember = message.guild.members.cache.get(args[0]);
             }else if(message.mentions.users.first()){
                 tgtmember = message.mentions.users.first();
             }else{
@@ -46,7 +46,7 @@ module.exports = {
             }
             var currentcaseid = makeid();
 
-            const embed = new Discord.RichEmbed()
+            const embed = new Discord.MessageEmbed()
                 .addField("User ID", tgtmember.id)
                 .addField("Added by", moderator)
                 .addField("Reason", reason)
@@ -59,7 +59,7 @@ module.exports = {
 
             if(message.attachments.size > 0){
                 message.attachments.forEach(element => {
-                    const attatchembed = new Discord.RichEmbed()
+                    const attatchembed = new Discord.MessageEmbed()
                         .setAuthor(`Evidence For Case ${currentcaseid}`)
                         .setImage(element.url)
                         .setFooter(`AEGIS-WARN-EVIDENCE Event | Case ID: ${currentcaseid}`);

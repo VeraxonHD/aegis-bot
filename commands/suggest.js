@@ -8,14 +8,14 @@ module.exports = {
         var Discord = require("discord.js");
         var config = require("../config.json");
 
-        var suggestionsChannel = message.guild.channels.get(config[message.guild.id].logchannels.suggestions);
+        var suggestionsChannel = message.guild.channels.cache.get(config[message.guild.id].logchannels.suggestions);
         if(!suggestionsChannel || suggestionsChannel.type != "text"){
-            suggestionsChannel = message.guild.channels.get(config[message.guild.id].logchannels.default);
+            suggestionsChannel = message.guild.channels.cache.get(config[message.guild.id].logchannels.default);
         }
 
         console.log(suggestionsChannel.name);
 
-        const embed = new Discord.RichEmbed()
+        const embed = new Discord.MessageEmbed()
             .setAuthor(message.author.tag, message.author.avatarURL)
             .addField("New suggestion/feedback from user", args.slice(0).join(" "))
             .setColor("#42b9f4")
@@ -25,7 +25,7 @@ module.exports = {
 
         if(message.attachments.size > 0){
             message.attachments.forEach(element => {
-                const attatchembed = new Discord.RichEmbed()
+                const attatchembed = new Discord.MessageEmbed()
                     .setAuthor(`Feedback Attachment from ${message.author.tag}`, message.author.avatarURL)
                     .setImage(element.url)
                     .setTimestamp(new Date())

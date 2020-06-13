@@ -13,11 +13,11 @@ module.exports= {
             pastebin = new PastebinAPI({
             'api_dev_key' : 'acb37cf990dfdeb81006618f4d0ca1a9'
             });
-        var logchannel = guild.channels.get("419089321849520128");
+        var logchannel = guild.channels.cache.get("419089321849520128");
         var mmDB = require("../aegis.js").sendModmailDB();
       
         //Fetch all messages sent in the channel, from most to least recent
-        message.channel.fetchMessages().then(messages =>{
+        message.channel.messages.fetchs().then(messages =>{
             //Then reverse the array to make it least to most recent.
             var finalArray = [];
             var mArray = messages.array();
@@ -56,7 +56,7 @@ module.exports= {
                 })
                 message.channel.delete()
                 .then(delchan => {
-                    var embed = new Discord.RichEmbed()
+                    var embed = new Discord.MessageEmbed()
                     .addField("Thread Deleted", delchan.name, true)
                     .addField("Deleted by: ", message.author.username, true)
                     .addField("Logs:", `<${data}>`)

@@ -10,7 +10,7 @@ module.exports = {
             return util.invalidPermissions(message.channel, "slap", "MANAGE_MESSAGES");
         }
         if(args[0].length == 18){
-            var member = message.guild.members.get(args[0]);
+            var member = message.guild.members.cache.get(args[0]);
             if(member){
                 return message.channel.send(`As a pimp, <@${message.author.id}> reaches back and slaps dafuq out of <@${member.id}>. Press F to pay respects.`)
             }else{
