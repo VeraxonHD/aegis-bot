@@ -33,7 +33,6 @@ module.exports = {
                 };
                 embed.addField("Name", name, true);
                 embed.addField("Description", description, true);
-                embed.addBlankField();
                 embed.addField("Aliases", alias, true);
                 embed.addField("Usage", usage, true);
                 embed.addField("Permissions", permissions, true);
