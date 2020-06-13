@@ -9,15 +9,16 @@ module.exports= {
         //init variables
         var guild = message.guild;
         var Discord = require("discord.js");
-        var PastebinAPI = require('pastebin-js'),
+        var PastebinAPI = require('pastebin-js');
+        var config = require("../config.json")
             pastebin = new PastebinAPI({
             'api_dev_key' : 'acb37cf990dfdeb81006618f4d0ca1a9'
             });
-        var logchannel = guild.channels.cache.get("419089321849520128");
+        var logchannel = guild.channels.cache.get(config[guild.id].logchannels.default);
         var mmDB = require("../aegis.js").sendModmailDB();
       
         //Fetch all messages sent in the channel, from most to least recent
-        message.channel.messages.fetchs().then(messages =>{
+        message.channel.messages.fetch().then(messages =>{
             //Then reverse the array to make it least to most recent.
             var finalArray = [];
             var mArray = messages.array();

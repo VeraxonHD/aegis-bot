@@ -164,7 +164,7 @@ client.on("ready", () => {
             }
     
           if(Date.now() > time){
-            member.removeRole(mutedRole);
+            member.roles.remove(mutedRole);
     
             delete mutes[i];
             jsonfile.writeFileSync("./mutes.json", mutes, {spaces:4}, function(err){
@@ -261,7 +261,7 @@ client.on("message", message => {
             }).then(row=>{
                 if(row){
                     var threadGuild = client.guilds.cache.get(row.guildid);
-                    var threadChan = threadguild.channels.cache.get(row.channelid);
+                    var threadChan = threadGuild.channels.cache.get(row.channelid);
                     threadChan.send(`**[${dateformat(new Date(), "HH:MM:ss")}] <${message.author.tag}>** - ${message.content}`);
                 }else{
                     //Create a new channel
@@ -565,7 +565,7 @@ client.on("guildMemberAdd", member => {
 			console.log('Please add a correct role ID to the autorole config.');
 		}else{
 			try{
-				member.addRole(role);
+				member.roles.add(role);
 				return console.log(`Gave ${member.user.tag} the established autorole ${role.name} successfully`);
 			}catch (e){
 				console.log('Error. Please check below for diagnostics.');
@@ -618,7 +618,7 @@ client.on('raw', async event => {
 
 	// custom emojis reactions are keyed in a `name:ID` format, while unicode emojis are keyed by names
 	const emojiKey = (data.emoji.id) ? `${data.emoji.name}:${data.emoji.id}` : data.emoji.name;
-	const reaction = message.reactions.get(emojiKey);
+	const reaction = message.reactions.cache.get(emojiKey);
 
 	client.emit(events[event.t], reaction, user);
 });
@@ -659,7 +659,7 @@ client.on("messageReactionAdd", (messageReaction, user) =>{
                 if(reactroles[messageUID][messageReaction.emoji.id]){
                     try{
                         var role = message.guild.roles.cache.get(reactroles[messageUID][messageReaction.emoji.id])
-                        member.addRole(role)
+                        member.roles.add(role)
                         console.log(`Added ${role.name} to ${user.tag}`)
                     }catch(err){
                         console.log("An error occured trying to add the role \n"+err)
@@ -694,7 +694,7 @@ client.on("messageReactionRemove", (messageReaction, user) =>{
                 if(reactroles[messageUID][messageReaction.emoji.id]){
                     try{
                         var role = message.guild.roles.cache.get(reactroles[messageUID][messageReaction.emoji.id])
-                        member.removeRole(role)
+                        member.roles.remove(role)
                         console.log(`Removed ${role.name} from ${user.tag}`)
                     }catch(err){
                         console.log("An error occured trying to add the role \n"+err)

@@ -34,7 +34,7 @@ module.exports = {
         return util.userNotFound(message.channel, args[1])
       }
       //Fetch messages up to the message count limit + 2 (includes the user's message and the confirmation message for clean up purposes.)  
-      message.channel.messages.fetchs({limit: messagecount + 2})
+      message.channel.messages.fetch({limit: messagecount + 2})
       //Then filter them into an array and remove any messages not sent by the target, then bulk delete them.
       .then(messages => {
         var msgArray = messages.array()
@@ -48,7 +48,7 @@ module.exports = {
     //Else if there is no second arg and a first arg
     }else if(args[0] && !args[1]){
       //fetches messages + 1 to include execution message,
-      message.channel.messages.fetchs({limit: messagecount + 1})
+      message.channel.messages.fetch({limit: messagecount + 1})
       //then deletes them
       .then(messages => message.channel.bulkDelete(messages, true))
       //and sends confirmation message

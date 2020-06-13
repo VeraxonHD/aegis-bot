@@ -58,7 +58,7 @@ module.exports = {
           reason = "No Reason Supplied.";
         }
       
-        guild.member(user).addRole(mutedRole);
+        guild.member(user).roles.add(mutedRole);
         mutes[user.id] = {
           "guild" : guild.id,
           "time" : Date.now() + ms(time)

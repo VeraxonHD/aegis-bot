@@ -20,7 +20,7 @@ module.exports= {
             }
         }).then(row=>{
             //Get target user from DB
-            var target = tdguild.members.cache.get(row.memberid);
+            var target = tdGuild.members.cache.get(row.memberid);
 
             //Reply with a message to the user, with the content of the message being the first argument.
             target.send(`**[${dateformat(new Date(), "HH:MM:ss")}] <${message.author.tag}>** - ${content}`);
