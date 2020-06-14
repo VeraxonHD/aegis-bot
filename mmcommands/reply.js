@@ -10,9 +10,12 @@ module.exports= {
         var main = require("../aegis.js");
         var mmDB = main.sendModmailDB();                        //Modmail table in db
         var client = main.sendClient();                         //The client object
-        var tdGuild = client.guilds.cache.get("373828154135019530");  //The guild object for the main guild.
+        for(var guild in config){
+            if(config[guild].modmail && config[guild].modmail.enabled == true){
+                var serveGuild = client.guilds.cache.get(guild);
+            }
+        }                                                       //The guild object for the main guild.
         var content = args.slice(0).join(" ");                  //The message content
-        //var target = tdguild.members.cache.get(message.channel.topic);//The target user to return a message to
         var dateformat = require("dateformat");                 //The dateformat module
         mmDB.findOne({
             where:{
@@ -20,7 +23,7 @@ module.exports= {
             }
         }).then(row=>{
             //Get target user from DB
-            var target = tdGuild.members.cache.get(row.memberid);
+            var target = serveGuild.members.cache.get(row.memberid);
 
             //Reply with a message to the user, with the content of the message being the first argument.
             target.send(`**[${dateformat(new Date(), "HH:MM:ss")}] <${message.author.tag}>** - ${content}`);
