@@ -52,9 +52,9 @@ module.exports = {
               delete mutes[i];
               jsonfile.writeFile("./mutes.json", mutes, {spaces: 4}, err =>{
                 if(!err){
-                  message.channel.send("`Aegis Success` - User muted successfully.");
+                  message.channel.send("`Aegis Success` - User unmuted successfully.");
                 }else{
-                  message.channel.send("`Aegis Error` - User could not be muted due to a jsonfile write error.");
+                  message.channel.send("`Aegis Error` - User could not be unmuted due to a jsonfile write error.");
                   console.log(err);
                 }
               })
