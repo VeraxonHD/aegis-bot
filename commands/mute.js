@@ -2,7 +2,7 @@ module.exports = {
     name: "mute",
     description: "Mutes a user, removing permissions by adding a role.",
     alias: [],
-    usage: "mute <userid or mention> [reason]",
+    usage: "mute <userid or mention>",
     permissions: "MANAGE_MESSAGES",
     execute(message, args, client) {
         var guild = message.guild;
@@ -17,8 +17,6 @@ module.exports = {
         var ms = require("ms");
         var time = args[1];
         var reason = args.slice(2).join(" ");
-        var dateformat = require("dateformat");
-        var timeFormatted = dateformat(Date.now() + ms(time), "dd/mm/yyyy HH:MM:ss");
         var jsonfile = require("jsonfile");
         var util = require("../returndata.js");
 
@@ -44,83 +42,113 @@ module.exports = {
                 return util.userNotFound(message.channel, args[0]);
             }
         }
-        
-        if(!mutedRole){
-          mutedRole = guild.roles.cache.find(role => role.name.toLowerCase() === "muted");
-          if(!mutedRole){
-            return message.channel.send("Please add a muted role to the config. You cannot mute someone without such a role. Consult the docs page for more info.");
-          }
-        }
-        if(user.id == config.general.botID){
-          return message.channel.send(":(");
-        }
-        if(!reason){
-          reason = "No Reason Supplied.";
-        }
+        if(tgtmember.roles.cache.has(mutedRole)){
+          tgtmember.roles.remove(mutedRole);
+          message.reply("User was unmuted manually!")
+
+          for(var i in mutes){
+            var guild = client.guilds.cache.get(mutes[i].guild);
+            var member = guild.members.cache.get(i)
+            if(!member) return
+            if(i == tgtmember.id){
+              delete mutes[i];
+              jsonfile.writeFileSync("./mutes.json", mutes, {spaces:4}, function(err){
+                if(err){
+                  console.log(err);
+                }else{
+                  console.log("Mute removed.");
+                }
+              })
       
-        guild.member(user).roles.add(mutedRole);
-        mutes[user.id] = {
-          "guild" : guild.id,
-          "time" : Date.now() + ms(time)
-        }
-      
-        jsonfile.writeFile("./mutes.json", mutes, {spaces: 4}, err =>{
-          if(!err){
-            message.channel.send("`Aegis Success` - User muted successfully.");
-          }else{
-            message.channel.send("`Aegis Error` - User could not be muted.");
-            console.log(err);
+              const embed = new Discord.MessageEmbed()
+                .addField("User unmuted", member.displayName)
+                .setColor("#00C597")
+                .setFooter("AEGIS-MUTE-EXPIRE Event")
+                .setTimestamp(new Date());
+              return logchannel.send(`Mute expired for **${member.user.tag}**`, {embed});
+            }
           }
-        })
-
-        function makeid() {
-            var text = "";
-            var possible = "ABCDEFGHIJKLMNOPQRSTUVWXY0123456789";
-          
-            for (var i = 0; i < 5; i++)
-              text += possible.charAt(Math.floor(Math.random() * possible.length));
-          
-            return text;
-        }
-        var currentcaseid = makeid();
-
-        const embed = new Discord.MessageEmbed()
-            .addField("User ID", tgtmember.id)
-            .addField("Added by", moderator.tag)
-            .addField("Reason", reason)
-            .addField("For", time)
-            .setTimestamp(new Date())
-            .setFooter("AEGIS-MUTE Command | Case ID: " + currentcaseid)
-            .setColor("#00C597");
-        logchannel.send(`Mute log for ${tgtmember.tag} - Case ID **${currentcaseid}**`, {embed})
-
-        var evidencedb = mainfile.sendEvidenceDB();
-
-        if(message.attachments.size > 0){
-            message.attachments.forEach(element => {
-                const attatchembed = new Discord.MessageEmbed()
-                    .setAuthor(`Evidence For Case ${currentcaseid}`)
-                    .setImage(element.url)
-                    .setFooter(`AEGIS-WARN-EVIDENCE Event | Case ID: ${currentcaseid}`);
-                logchannel.send(`Mute evidence for **${tgtmember.tag}** - Case ID **${currentcaseid}**`, {embed: attatchembed});
-                
-                evidencedb.create({
-                    userid: tgtmember.id,
-                    CaseID: currentcaseid,
-                    typeOf: "MUTE",
-                    dateAdded: message.createdTimestamp,
-                    evidenceLinks: element.url
-                });
-            });   
         }else{
-            evidencedb.create({
-                userid: tgtmember.id,
-                CaseID: currentcaseid,
-                typeOf: "MUTE",
-                dateAdded: message.createdTimestamp,
-                evidenceLinks: "No Evidence",
-                reason: reason
-            });
+          if(!mutedRole){
+            mutedRole = guild.roles.cache.find(role => role.name.toLowerCase() === "muted");
+            if(!mutedRole){
+              return message.channel.send("Please add a muted role to the config. You cannot mute someone without such a role.");
+            }
+          }
+          if(user.id == config.general.botID){
+            return message.channel.send(":(");
+          }
+          if(!reason){
+            reason = "No Reason Supplied.";
+          }
+          if(!time){
+            time = null;
+          }
+        
+          guild.member(user).roles.add(mutedRole);
+          mutes[user.id] = {
+            "guild" : guild.id,
+            "time" : Date.now() + ms(time)
+          }
+        
+          jsonfile.writeFile("./mutes.json", mutes, {spaces: 4}, err =>{
+            if(!err){
+              message.channel.send("`Aegis Success` - User muted successfully.");
+            }else{
+              message.channel.send("`Aegis Error` - User could not be muted.");
+              console.log(err);
+            }
+          })
+  
+          function makeid() {
+              var text = "";
+              var possible = "ABCDEFGHIJKLMNOPQRSTUVWXY0123456789";
+            
+              for (var i = 0; i < 5; i++)
+                text += possible.charAt(Math.floor(Math.random() * possible.length));
+            
+              return text;
+          }
+          var currentcaseid = makeid();
+  
+          const embed = new Discord.MessageEmbed()
+              .addField("User ID", tgtmember.id)
+              .addField("Added by", moderator.tag)
+              .addField("Reason", reason)
+              .addField("For", time)
+              .setTimestamp(new Date())
+              .setFooter("AEGIS-MUTE Command | Case ID: " + currentcaseid)
+              .setColor("#00C597");
+          logchannel.send(`Mute log for ${tgtmember.tag} - Case ID **${currentcaseid}**`, {embed})
+  
+          var evidencedb = mainfile.sendEvidenceDB();
+  
+          if(message.attachments.size > 0){
+              message.attachments.forEach(element => {
+                  const attatchembed = new Discord.MessageEmbed()
+                      .setAuthor(`Evidence For Case ${currentcaseid}`)
+                      .setImage(element.url)
+                      .setFooter(`AEGIS-WARN-EVIDENCE Event | Case ID: ${currentcaseid}`);
+                  logchannel.send(`Mute evidence for **${tgtmember.tag}** - Case ID **${currentcaseid}**`, {embed: attatchembed});
+                  
+                  evidencedb.create({
+                      userid: tgtmember.id,
+                      CaseID: currentcaseid,
+                      typeOf: "MUTE",
+                      dateAdded: message.createdTimestamp,
+                      evidenceLinks: element.url
+                  });
+              });   
+          }else{
+              evidencedb.create({
+                  userid: tgtmember.id,
+                  CaseID: currentcaseid,
+                  typeOf: "MUTE",
+                  dateAdded: message.createdTimestamp,
+                  evidenceLinks: "No Evidence",
+                  reason: reason
+              });
+          }
         }
     }
 }
