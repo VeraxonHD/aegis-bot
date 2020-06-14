@@ -12,13 +12,22 @@ module.exports = {
         var mainfile = require("../aegis.js");
         var mutedRole = guild.roles.cache.find(role => role.name.toLowerCase() === config[guild.id].mutedrole.toLowerCase());
         var logchannel = message.guild.channels.cache.get(config[guild.id].modlogchannelID);
-        var user = message.mentions.users.first();
-        var moderator = message.author.username;
+        var moderator = message.author;
         var ms = require("ms");
         var time = args[1];
         var reason = args.slice(2).join(" ");
         var jsonfile = require("jsonfile");
         var util = require("../returndata.js");
+        var snowflakeRegexTest = new RegExp("([0-9]{18})");
+
+        var tgtmember;
+        if(args[0].length == 18 && snowflakeRegexTest.test(args[0])){
+            tgtmember = message.guild.members.cache.get(args[0]);
+        }else if(message.mentions.users.first()){
+            tgtmember = message.mentions.members.first();
+        }else{
+            return util.userNotFound(message.channel, args[0]);
+        }
 
         if(!message.member.hasPermission("MANAGE_MESSAGES")){
             return util.invalidPermissions(message.channel, "mute", "MANAGE_MESSAGES")
@@ -29,17 +38,6 @@ module.exports = {
                 if(!logchannel){
                     return message.channel.send("You do not have a logchannel configured. Contact your server owner.");
                 }
-            }
-
-            var moderator = message.author.tag;
-            var tgtmember;
-            var snowflakeRegexTest = new RegExp("([0-9]{18})");
-            if(args[0].length == 18 && snowflakeRegexTest.test(args[0])){
-                tgtmember = message.guild.members.cache.get(args[0]);
-            }else if(message.mentions.users.first()){
-                tgtmember = message.mentions.users.first();
-            }else{
-                return util.userNotFound(message.channel, args[0]);
             }
         }
         if(tgtmember.roles.cache.has(mutedRole)){
@@ -75,7 +73,7 @@ module.exports = {
               return message.channel.send("Please add a muted role to the config. You cannot mute someone without such a role.");
             }
           }
-          if(user.id == config.general.botID){
+          if(tgtmember.id == config.general.botID){
             return message.channel.send(":(");
           }
           if(!reason){
@@ -86,7 +84,7 @@ module.exports = {
           }
         
           guild.member(user).roles.add(mutedRole);
-          mutes[user.id] = {
+          mutes[tgtmember.id] = {
             "guild" : guild.id,
             "time" : Date.now() + ms(time)
           }
