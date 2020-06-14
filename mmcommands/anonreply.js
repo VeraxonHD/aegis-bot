@@ -10,6 +10,7 @@ module.exports= {
         var main = require("../aegis.js");
         var mmDB = main.sendModmailDB();                        //Modmail table in db
         var client = main.sendClient();                         //The client object
+        var config = require("../config.json");
         for(var guild in config){
             if(config[guild].modmail && config[guild].modmail.enabled == true){
                 var serveGuild = client.guilds.cache.get(guild);
