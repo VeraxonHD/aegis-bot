@@ -50,11 +50,12 @@ module.exports = {
             if(!member) return
             if(i == tgtmember.id){
               delete mutes[i];
-              jsonfile.writeFileSync("./mutes.json", mutes, {spaces:4}, function(err){
-                if(err){
-                  console.log(err);
+              jsonfile.writeFile("./mutes.json", mutes, {spaces: 4}, err =>{
+                if(!err){
+                  message.channel.send("`Aegis Success` - User muted successfully.");
                 }else{
-                  console.log("Mute removed.");
+                  message.channel.send("`Aegis Error` - User could not be muted due to a jsonfile write error.");
+                  console.log(err);
                 }
               })
       
@@ -79,21 +80,25 @@ module.exports = {
           if(!reason){
             reason = "No Reason Supplied.";
           }
-          if(!time){
-            time = null;
-          }
-        
+
           tgtmember.roles.add(mutedRole);
-          mutes[tgtmember.id] = {
-            "guild" : guild.id,
-            "time" : Date.now() + ms(time)
+          if(!time){
+            mutes[tgtmember.id] = {
+              "guild" : guild.id,
+              "time" : null
+            }
+          }else{
+            mutes[tgtmember.id] = {
+              "guild" : guild.id,
+              "time" : Date.now() + ms(time)
+            }
           }
-        
+
           jsonfile.writeFile("./mutes.json", mutes, {spaces: 4}, err =>{
             if(!err){
               message.channel.send("`Aegis Success` - User muted successfully.");
             }else{
-              message.channel.send("`Aegis Error` - User could not be muted.");
+              message.channel.send("`Aegis Error` - User could not be muted due to a jsonfile write error.");
               console.log(err);
             }
           })
