@@ -83,7 +83,7 @@ module.exports = {
             time = null;
           }
         
-          guild.member(user).roles.add(mutedRole);
+          tgtmember.roles.add(mutedRole);
           mutes[tgtmember.id] = {
             "guild" : guild.id,
             "time" : Date.now() + ms(time)
