@@ -145,7 +145,7 @@ client.on("ready", () => {
     });
     
     client.user.setPresence({ game: { name: 'Development Mode Activated!', type: "Watching" }, status: 'idle' });
-    //client.user.setPresence({ game: { name: 'Live V2.4.1!', type: "Watching" }, status: 'online' });
+    //client.user.setPresence({ game: { name: 'Live V2.5.1!', type: "Watching" }, status: 'online' });
     
     client.setInterval(() => {
         for(var i in mutes){
@@ -304,7 +304,7 @@ client.on("message", message => {
                         //set the parent to the category channel
                         newChan.setParent(catChan);
                         //send a message notifying online members (@here)
-                        newChan.send(`@here - New ModMail Support Thread opened. Author: \`${message.author.tag}\` Time: \`${dateformat(message.createdAt, "dd/mm/yyyy - hh:MM:ss")}\``);
+                        newChan.send(`@here - New ModMail Support Thread opened. Author: <@${message.author.id}> (ID: ${message.author.id}) Time: \`${dateformat(message.createdAt, "dd/mm/yyyy - hh:MM:ss")}\``);
                         //Send the first message to the channel with the content that the user sent in the DM to the bot.
                         newChan.send(`**[${dateformat(new Date(), "HH:MM:ss")}] <${message.author.tag}>** - ${message.content}`);
                     }).catch(err => console.log(err));
