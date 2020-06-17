@@ -52,8 +52,9 @@ module.exports = {
         }
         var currentcaseid = makeid();
 
+        message.reply(`Success! ${tgtmember.user.tag} was successfully banned from ${message.guild.name}. <:banhammer:722877640201076775>`);
         message.guild.member(tgtmember).ban();
-
+        
         const embed = new Discord.MessageEmbed()
                 .addField("User ID", tgtmember.id)
                 .addField("Added by", moderator)
