@@ -18,14 +18,14 @@ module.exports = {
             if(args[0].length == 18 && snowflakeRegexTest.test(args[0])){
                 tgtmember = message.guild.members.cache.get(args[0]);
             }else if(message.mentions.users.first()){
-                tgtmember = message.mentions.users.first();
+                tgtmember = message.mentions.members.first();
             }else{
                 return util.userNotFound(message.channel, args[0]);
             }
 
         if(!message.member.hasPermission("BAN_MEMBERS")){
             return util.invalidPermissions(message.channel, "ban", "BAN_MEMBERS")
-        }else if(message.guild.member(tgtmember).bannable == false){
+        }else if(tgtmember.bannable == false){
             return message.reply("You cannot ban that user.")
         }
         var reason = args.slice(1).join(" ");
@@ -53,7 +53,7 @@ module.exports = {
         var currentcaseid = makeid();
 
         message.reply(`Success! ${tgtmember.user.tag} was successfully banned from ${message.guild.name}. <:banhammer:722877640201076775>`);
-        message.guild.member(tgtmember).ban();
+        tgtmember.ban();
         
         const embed = new Discord.MessageEmbed()
                 .addField("User ID", tgtmember.id)
@@ -62,7 +62,7 @@ module.exports = {
                 .setTimestamp(new Date())
                 .setFooter("AEGIS-BAN Command | Case ID: " + currentcaseid)
                 .setColor("#00C597")
-            logchannel.send(`Ban log for **${tgtmember.tag}** - Case ID **${currentcaseid}**`, {embed})
+            logchannel.send(`Ban log for **${tgtmember.user.tag}** - Case ID **${currentcaseid}**`, {embed})
 
         var evidencedb = mainfile.sendEvidenceDB();
         if(message.attachments.size > 0){
