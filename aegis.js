@@ -366,39 +366,37 @@ client.on("message", message => {
         }
         var captures = message.content.match(regexpapttern)
         client.fetchInvite(captures[0]).then(invite =>{
-            console.log(invite)
-            if(invite.guild.id != guild.id){
-                if(message.content.indexOf("discord.gg") != -1 && message.content.indexOf(`${invite.code}`) == -1){
-                    var currentcaseid = makeid();
-                    EvidenceDB.create({
-                        userid: message.author.id,
-                        CaseID: currentcaseid,
-                        typeOf: "WARN",
-                        dateAdded: message.createdTimestamp,
-                        evidenceLinks: "Automated Response",
-                        reason: "Automated action taken due to spammed Discord Link."
-                    });
-                    message.reply("This server does not allow users to send Discord Links. You have been warned for this infraction.");
-                    var logchannel = message.guild.channels.cache.get(config[message.guild.id].logchannels.moderator);
+            //guild.invites.has?
+            if(invite.guild.id != guild.id && !guildConfig.filters.exempt.includes(message.author.id)){
+                var currentcaseid = makeid();
+                EvidenceDB.create({
+                    userid: message.author.id,
+                    CaseID: currentcaseid,
+                    typeOf: "WARN",
+                    dateAdded: message.createdTimestamp,
+                    evidenceLinks: "Automated Response",
+                    reason: "Automated action taken due to spammed Discord Link."
+                });
+                message.reply("This server does not allow users to send Discord Links. You have been warned for this infraction.");
+                var logchannel = message.guild.channels.cache.get(config[message.guild.id].logchannels.moderator);
+                if(!logchannel){
+                    logchannel = message.guild.channels.cache.get(config[message.guild.id].logchannels.default);
                     if(!logchannel){
-                        logchannel = message.guild.channels.cache.get(config[message.guild.id].logchannels.default);
-                        if(!logchannel){
-                            message.delete();
-                            return message.channel.send("You do not have a logchannel configured. Contact your server owner.");
-                        }
+                        message.delete();
+                        return message.channel.send("You do not have a logchannel configured. Contact your server owner.");
                     }
-                    const embed = new Discord.MessageEmbed()
-                        .addField("User ID", message.author.id)
-                        .addField("Added by", "Automated Spam Filter")
-                        .addField("Reason", `Posting a foreign discord link in ${message.channel.name}`)
-                        .setTimestamp(new Date())
-                        .setFooter("AEGIS-WARN Command | Case ID: " + currentcaseid)
-                        .setColor("#00C597");
-                    logchannel.send(`Warning log for **${message.author.tag}** - Case ID **${currentcaseid}**`, {embed});
-                    message.delete();
                 }
+                const embed = new Discord.MessageEmbed()
+                    .addField("User ID", message.author.id)
+                    .addField("Added by", "Automated Spam Filter")
+                    .addField("Reason", `Posting a foreign discord link in ${message.channel.name}`)
+                    .setTimestamp(new Date())
+                    .setFooter("AEGIS-WARN Command | Case ID: " + currentcaseid)
+                    .setColor("#00C597");
+                logchannel.send(`Warning log for **${message.author.tag}** - Case ID **${currentcaseid}**`, {embed});
+                message.delete();
             } 
-        }).catch();
+        }).catch(console.error());
     }
 })
 
@@ -526,7 +524,8 @@ client.on("guildCreate", guild =>{
                 "allowedRoles": []
             },
             "filters": {
-                "discordInvites": false
+                "discordInvites": false,
+                "exempt": []
             }
         }
         
