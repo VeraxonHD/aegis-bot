@@ -145,7 +145,7 @@ client.on("ready", () => {
     });
     
     //client.user.setPresence({ game: { name: 'Development Mode Activated!', type: "Watching" }, status: 'idle' });
-    client.user.setPresence({ game: { name: 'Live V2.5.3!', type: "Watching" }, status: 'online' });
+    client.user.setPresence({ game: { name: 'Live V2.6.1!', type: "Watching" }, status: 'online' });
     
     client.setInterval(() => {
         for(var i in mutes){

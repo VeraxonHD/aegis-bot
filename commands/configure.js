@@ -185,7 +185,7 @@ module.exports = {
                     }catch(err){
                         return message.reply("That user ID has never been cached by the bot, so it probably doesn't exist in any meaningful way. Try again with a different user ID.");
                     }
-                    if(exemptList.includes(userid) == -1){
+                    if(!exemptList.includes(userid)){
                         exemptList.push(userid)
                         message.reply(`Added <@${userid}> to the list of spam-filter exempt users successfully!`);
                     }else{
