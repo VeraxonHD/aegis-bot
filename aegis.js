@@ -144,8 +144,8 @@ client.on("ready", () => {
         client.mmcommands.set(commandFile.name, commandFile);
     });
     
-    //client.user.setPresence({ game: { name: 'Development Mode Activated!', type: "Watching" }, status: 'idle' });
-    client.user.setPresence({ game: { name: 'Live V2.6.1!', type: "Watching" }, status: 'online' });
+    //client.user.setPresence({ activity: { name: 'with my codebase' }, status: 'idle' });
+    client.user.setPresence({ activity: { name: 'Live (v2.6.1) | a!help' }, status: 'online' });
     
     client.setInterval(() => {
         for(var i in mutes){
