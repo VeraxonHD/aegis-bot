@@ -354,6 +354,52 @@ client.on("message", message => {
     }  
 })
 
+//Spam Filter Handling
+client.on("message", message => {
+    var guild = message.guild;
+    var guildConfig = config[guild.id];
+    var regexpapttern = /(?:https?:\/\/)?(?:www\.)?discord(?:\.gg|(?:app)?\.com\/invite)\/(\S+)/
+    var regexp = new RegExp(regexpapttern);
+    if(guildConfig.filters.discordInvites == true){
+        if(!regexp.test(message.content)){
+            return
+        }
+        var captures = message.content.match(regexpapttern)
+        client.fetchInvite(captures[0]).then(invite =>{
+            //guild.invites.has?
+            if(invite.guild.id != guild.id && !guildConfig.filters.exempt.includes(message.author.id)){
+                var currentcaseid = makeid();
+                EvidenceDB.create({
+                    userid: message.author.id,
+                    CaseID: currentcaseid,
+                    typeOf: "WARN",
+                    dateAdded: message.createdTimestamp,
+                    evidenceLinks: "Automated Response",
+                    reason: "Automated action taken due to spammed Discord Link."
+                });
+                message.reply("This server does not allow users to send Discord Links. You have been warned for this infraction.");
+                var logchannel = message.guild.channels.cache.get(config[message.guild.id].logchannels.moderator);
+                if(!logchannel){
+                    logchannel = message.guild.channels.cache.get(config[message.guild.id].logchannels.default);
+                    if(!logchannel){
+                        message.delete();
+                        return message.channel.send("You do not have a logchannel configured. Contact your server owner.");
+                    }
+                }
+                const embed = new Discord.MessageEmbed()
+                    .addField("User ID", message.author.id)
+                    .addField("Added by", "Automated Spam Filter")
+                    .addField("Reason", `Posting a foreign discord link in ${message.channel.name}`)
+                    .setTimestamp(new Date())
+                    .setFooter("AEGIS-WARN Command | Case ID: " + currentcaseid)
+                    .setColor("#00C597");
+                logchannel.send(`Warning log for **${message.author.tag}** - Case ID **${currentcaseid}**`, {embed});
+                message.delete();
+            } 
+        }).catch(console.error());
+    }
+})
+
 client.on("messageDelete", message => {
     var mcontent = message.content;
     if(mcontent.length > 1023){
@@ -476,6 +522,10 @@ client.on("guildCreate", guild =>{
                 "enabled": false,
                 "categorychannel": "",
                 "allowedRoles": []
+            },
+            "filters": {
+                "discordInvites": false,
+                "exempt": []
             }
         }
         
@@ -720,6 +770,16 @@ client.on("messageReactionRemove", (messageReaction, user) =>{
     }
 });
 //END EVENT messageReactionRemove
+
+function makeid() {
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXY0123456789";
+  
+    for (var i = 0; i < 5; i++)
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+  
+    return text;
+}
 
 process.on("unhandledRejection", err => {
     console.error("Uncaught Promise Error: \n", err);

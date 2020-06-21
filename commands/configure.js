@@ -2,13 +2,14 @@ module.exports = {
     name: "configure",
     description: "Allows Administrators to configure certain bot I/O features",
     alias: ["config", "cfg"],
-    usage: "configure <-dc disabledCommands | -dl disabledLogs | -lc logchannel> <value> ...\n<-lc channelID>",
+    usage: "configure *<param, see below>*\n**disabledCommands** (-dc) <command name>\n**disabledLogs** (-dl) <log name>\n**logchannel** (-lc) <log channel type (moderation, voice, migration, suggestions, default)> <channel id>\n**modmail** <-mm) <category channel>\n**autorole** (-ar) <role id>\n**auroroleenable** (-are) (toggle, no params)\n**filters** (-f) <filter name (discordInvites) or (exempt)> <if exempt: userID>",
     permissions: "ADMINISTRATOR",
     execute(message, args) {
         var util = require("../returndata.js");
         var config = require("../config.json");
         var fs = require("fs");
         var jsonfile = require("jsonfile");
+        var Client = require("../aegis.js").sendClient();
         if(!message.member.hasPermission("ADMINISTRATOR")){
             util.invalidPermissions(message.channel, "configure")
         }else if(!args[0]){
@@ -112,6 +113,7 @@ module.exports = {
                     }
                 }
             }else if(convar == "modmail" || convar == "-mm"){
+                if(message.author.id != "213040107278696450") return message.reply("This is an owner-level command, for the moment. Sorry for the inconvenience.");
                 if(!message.guild.channels.cache.get(value)){
                     return message.reply("That channel does not exist. Please use a vaild Category Channel Snowflake.");
                 }else if(message.guild.channels.cache.get(value).type != "category"){
@@ -126,7 +128,7 @@ module.exports = {
                         }
                     });
                 }
-            }else if(convar == "autorole" || "-ar"){
+            }else if(convar == "autorole" || convar == "-ar"){
 				var pingedRole = message.mentions.roles.first();
 				if(config[message.guild.id].autorole.enabled == false){
 					config[message.guild.id].autorole.enabled = true;
@@ -146,7 +148,7 @@ module.exports = {
 				}else{
 					return message.reply("That is an invalid role. Please mention the role you wish to set as the automatic role.");
 				}
-			}else if(convar == "autoroleenable" || "-are"){
+			}else if(convar == "autoroleenable" || convar == "-are"){
 				if(value == "true"){
 					config[message.guild.id].autorole.enabled = true;
 				}else if(value == "false"){
@@ -155,13 +157,51 @@ module.exports = {
 					return message.reply("Please enter only true or false.");
 				}
 				jsonfile.writeFile("./config.json", config, {spaces: 4}, err =>{
+                    if(err){
+                        return message.reply(`There was an error writing to the file. Please try again later or contact Vex#1337`);
+                    }else{
+                        return message.reply(`Success! Changed if autoRoler is enabled to **${value}**`);
+                    }
+                });
+			}else if(convar == "filters" || convar == "-f"){
+                if(value == "discordInvites"){
+                    if(config[message.guild.id].filters.discordInvites == true){
+                        config[message.guild.id].filters.discordInvites = false;
+                    }else{
+                        config[message.guild.id].filters.discordInvites = true;
+                    }
+                    jsonfile.writeFile("./config.json", config, {spaces: 4}, err =>{
                         if(err){
                             return message.reply(`There was an error writing to the file. Please try again later or contact Vex#1337`);
                         }else{
-                            return message.reply(`Success! Changed if autoRoler is enabled to **${value}**`);
+                            return message.reply(`Success! Discord Invite Filter is now: ${config[message.guild.id].filters.discordInvites}`);
                         }
-                });
-			}
+                    });
+                }else if(value == "exempt" || value == "allow"){
+                    var exemptList = config[message.guild.id].filters.exempt;
+                    var userid = args[2];
+                    try{
+                        Client.users.cache.get(userid);
+                    }catch(err){
+                        return message.reply("That user ID has never been cached by the bot, so it probably doesn't exist in any meaningful way. Try again with a different user ID.");
+                    }
+                    if(exemptList.includes(userid) == -1){
+                        exemptList.push(userid)
+                        message.reply(`Added <@${userid}> to the list of spam-filter exempt users successfully!`);
+                    }else{
+                        var pos = exemptList.indexOf(userid);
+                        exemptList.splice(pos, 1);
+                        message.reply(`Removed <@${userid}> from the list of spam-filter exempt users successfully!`);
+                    }
+                    jsonfile.writeFile("./config.json", config, {spaces: 4}, err =>{
+                        if(err){
+                            return message.reply(`There was an error writing to the file. Please try again later or contact Vex#1337`);
+                        }
+                    });
+                }
+            }else{
+                return message.reply("That is not a valid Config Variable.");
+            }
         }
     }
 }
