@@ -11,7 +11,7 @@ module.exports = {
         var jsonfile = require("jsonfile");
         var Client = require("../aegis.js").sendClient();
         if(!message.member.hasPermission("ADMINISTRATOR")){
-            util.invalidPermissions(message.channel, "configure")
+            util.invalidPermissions(message.channel, "configure", "ADMINISTRATOR")
         }else if(!args[0]){
             util.missingArgumentsEmbed(message.channel, "configure", "Configure Variable", "first")
         }else if(!args[1]){
