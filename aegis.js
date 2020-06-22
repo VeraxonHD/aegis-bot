@@ -1,5 +1,5 @@
 var Discord = require("discord.js");
-var client = new Discord.Client();
+var client = new Discord.Client({partials: ["MESSAGE", "REACTION"]});
 var config = require("./config.json");
 var mutes = require("./mutes.json")
 var prefix = config.general.prefix;
@@ -145,7 +145,7 @@ client.on("ready", () => {
     });
     
     //client.user.setPresence({ activity: { name: 'with my codebase' }, status: 'idle' });
-    client.user.setPresence({ activity: { name: 'Live (v2.6.1) | a!help' }, status: 'online' });
+    client.user.setPresence({ activity: { name: 'Live (v2.6.2) | a!help' }, status: 'online' });
     
     client.setInterval(() => {
         for(var i in mutes){
@@ -655,17 +655,20 @@ client.on("guildMemberAdd", member => {
     logchannel.send(`${member.user.tag} joined the server`, {embed})
 });
 
-const events = {
-    MESSAGE_REACTION_ADD: 'messageReactionAdd',
-    MESSAGE_REACTION_REMOVE: 'messageReactionRemove',
-};
+
 
 /*=====================================================================================
 Event Name:         raw
 Event Description:  Fired when any of the events from the above object are called.
 This allows for asynchronous handling and is useful for adding
 different reactionEmoji for use with menus and other such inputs.
+///DEPRECATED - TODO: CLEAN///
 =====================================================================================*/
+
+/*const events = {
+    MESSAGE_REACTION_ADD: 'messageReactionAdd',
+    MESSAGE_REACTION_REMOVE: 'messageReactionRemove',
+};
 
 client.on('raw', async event => {
     // `event.t` is the raw event name
@@ -684,7 +687,7 @@ client.on('raw', async event => {
     const reaction = message.reactions.cache.get(emojiKey);
     
     client.emit(events[event.t], reaction, user);
-});
+}); */
 //END EVENT raw
 
 /*=====================================================================================
@@ -741,9 +744,10 @@ Event Name:         messageReactionRemove
 Event Description:  Fired when a message loses a reaction Emoji (i.e it is removed).
 =====================================================================================*/
 
-client.on("messageReactionRemove", (messageReaction, user) =>{
-    var message = messageReaction.message;
+client.on("messageReactionRemove", async (messageReaction, user) =>{
     if(message.channel.type == "dm") return;
+    if(messageReaction.message.partial) await messageReaction.message.fetch();
+    var message = messageReaction.message;
     var member = message.guild.members.cache.get(user.id);
     var reactroles = require("./reactroles.json");
     /*=================================================================================
