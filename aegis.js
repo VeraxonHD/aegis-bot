@@ -745,9 +745,9 @@ Event Description:  Fired when a message loses a reaction Emoji (i.e it is remov
 =====================================================================================*/
 
 client.on("messageReactionRemove", async (messageReaction, user) =>{
-    if(message.channel.type == "dm") return;
     if(messageReaction.message.partial) await messageReaction.message.fetch();
     var message = messageReaction.message;
+    if(message.channel.type == "dm") return;
     var member = message.guild.members.cache.get(user.id);
     var reactroles = require("./reactroles.json");
     /*=================================================================================
