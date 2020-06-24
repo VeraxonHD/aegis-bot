@@ -356,6 +356,9 @@ client.on("message", message => {
 
 //Spam Filter Handling
 client.on("message", message => {
+    if(message.channel.type == "dm"){
+        return;
+    }
     var guild = message.guild;
     var guildConfig = config[guild.id];
     var regexpapttern = /(?:https?:\/\/)?(?:www\.)?discord(?:\.gg|(?:app)?\.com\/invite)\/(\S+)/
