@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "dateformat": "^3.0.3",
-    "discord.js": "^11.6.4",
+    "discord-anti-spam": "^2.4.1",
+    "discord.js": "12.2.0",
     "fs": "0.0.1-security",
     "jsonfile": "^4.0.0",
     "ms": "^2.1.1",
