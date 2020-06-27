@@ -8,6 +8,7 @@ module.exports = {
         var fs = require("fs");
         const embed = new Discord.MessageEmbed();
         var commandName = args[0];
+        var config = require("../config.json");
             if(!args[0]){
                 var commandlist = [];
                 var counter = 0
@@ -15,7 +16,7 @@ module.exports = {
                     commandlist[counter] = " " + command.slice(0, command.indexOf("."))
                     counter++
                 });
-                message.reply(`Here are a list of commands:**\n${commandlist}**\nTo get detailed help, use "!!help <command name>"`);
+                message.reply(`Here are a list of commands:**\n${commandlist}**\nTo get detailed help, use "${config.prefix}help <command name>"`);
             }else{
                 const command = client.commands.get(commandName);
                 if(!command){
