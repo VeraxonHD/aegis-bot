@@ -7,6 +7,28 @@ var fs = require("fs");
 var Sequelize = require("sequelize");
 var jsonfile = require("jsonfile");
 var dateformat = require("dateformat");
+const AntiSpam = require('discord-anti-spam');
+const antiSpam = new AntiSpam({
+    warnThreshold: 4, // Amount of messages sent in a row that will cause a warning.
+    kickThreshold: 999, // Amount of messages sent in a row that will cause a kick.
+    banThreshold: 7, // Amount of messages sent in a row that will cause a ban.
+    muteThreshold: 999, // Amount of messages sent in a row that will cause a mute.
+    maxInterval: 3000, // Amount of time (in milliseconds) in which messages are considered spam.
+    warnMessage: '{@user}, Please stop spamming.', // Message that will be sent in chat upon warning a user.
+    kickMessage: '**{user_tag}** has been kicked for spamming.', // Message that will be sent in chat upon kicking a user.
+    banMessage: '**{user_tag}** has been banned for spamming.', // Message that will be sent in chat upon banning a user.
+    muteMessage: '**{user_tag}** has been muted for spamming.', // Message that will be sent in chat upon muting a user.
+    maxDuplicatesWarning: 2, // Amount of duplicate messages that trigger a warning.
+    maxDuplicatesKick: 999, // Amount of duplicate messages that trigger a warning.
+    maxDuplicatesBan: 5, // Amount of duplicate messages that trigger a warning.
+    maxDuplicatesMute: 999, // Amount of duplicate messages that trigger a warning.
+    // Discord permission flags: https://discord.js.org/#/docs/main/master/class/Permissions?scrollTo=s-FLAGS
+    exemptPermissions: ['MANAGE_MESSAGES'], // Bypass users with any of these permissions(These are not roles so use the flags from link above).
+    ignoreBots: true, // Ignore bot messages.
+    verbose: true, // Extended Logs from module.
+    ignoredUsers: [], // Array of User IDs that get ignored.
+    // And many more options... See the documentation.
+});
 
 client.login(config.general.token);
 
@@ -354,16 +376,15 @@ client.on("message", message => {
     }  
 })
 
-//Spam Filter Handling
+//Discord Invite Link Filter Handling
 client.on("message", message => {
-    if(message.channel.type == "dm"){
-        return;
-    }
+    if(message.channel.type == "dm") return;    
     var guild = message.guild;
     var guildConfig = config[guild.id];
-    var regexpapttern = /(?:https?:\/\/)?(?:www\.)?discord(?:\.gg|(?:app)?\.com\/invite)\/(\S+)/
-    var regexp = new RegExp(regexpapttern);
+    
     if(guildConfig.filters.discordInvites == true){
+        var regexpapttern = /(?:https?:\/\/)?(?:www\.)?discord(?:\.gg|(?:app)?\.com\/invite)\/(\S+)/
+        var regexp = new RegExp(regexpapttern);
         if(!regexp.test(message.content)){
             return
         }
@@ -400,9 +421,49 @@ client.on("message", message => {
                 message.delete();
             } 
         }).catch(console.error());
+        console.log(guildConfig.filters.repeatMessage);
     }
-})
+});
 
+//General Spam Detection (Repeat/Identical Messages)
+client.on("message", message =>{
+    if(message.channel.type == "dm") return;
+    var guild = message.guild;
+
+    if(config[guild.id].filters.repeatMessage == true){
+        antiSpam.message(message);
+    }
+});
+antiSpam.on("warnAdd", member =>{
+    var currentcaseid = makeid();
+    EvidenceDB.create({
+        userid: member.id,
+        CaseID: currentcaseid,
+        typeOf: "WARN",
+        dateAdded: new Date(),
+        evidenceLinks: "Automated Response",
+        reason: "Automated action taken due to repeated spam."
+    });
+    
+    var logchannel = member.guild.channels.cache.get(config[member.guild.id].logchannels.moderator);
+    if(!logchannel){
+        logchannel = member.guild.channels.cache.get(config[member.guild.id].logchannels.default);
+        if(!logchannel){
+            return;
+        }
+    }
+
+    const embed = new Discord.MessageEmbed()
+        .addField("User ID", member.id)
+        .addField("Added by", "Automated Spam Filter")
+        .addField("Reason", `Spam`)
+        .setTimestamp(new Date())
+        .setFooter("AEGIS-WARN Command | Case ID: " + currentcaseid)
+        .setColor("#00C597");
+    logchannel.send(`Warning log for **${member.user.tag}** - Case ID **${currentcaseid}**`, {embed});
+});
+
+//On message delete event
 client.on("messageDelete", message => {
     var mcontent = message.content;
     if(mcontent.length > 1023){
@@ -430,8 +491,11 @@ client.on("messageDelete", message => {
     logchannel.send(`**${message.author.tag}**'s message was deleted!`, {embed});
 });
 
+//On message edit event
 client.on("messageUpdate", (oldMessage, newMessage) => {
-    if(oldMessage.content.length == 0 || oldMessage.author.id === client.user.id || oldMessage.content == newMessage.content || oldMessage.content.length > 1023 || newMessage.content.length > 1023){
+    if(!oldMessage.content || !newMessage.content){
+        return;
+    }else if(oldMessage.content.length == 0 || oldMessage.author.id === client.user.id || oldMessage.content == newMessage.content || oldMessage.content.length > 1023 || newMessage.content.length > 1023){
         return;
     }else if(newMessage.content.length == 0 || newMessage.author.id === client.user.id){
         return;
@@ -459,6 +523,7 @@ client.on("messageUpdate", (oldMessage, newMessage) => {
     logchannel.send(`**${userTagForMessage}**'s message was edited!`, {embed});    
 });
 
+//On purge command run
 client.on("messageDeleteBulk", messages =>{
     var logchannel = messages.first().guild.channels.cache.get(config[messages.first().guild.id].logchannels.default);
     if(!logchannel){
@@ -487,16 +552,17 @@ client.on("messageDeleteBulk", messages =>{
     logchannel.send({embed})
 });
 
+//On Guild Join event
 client.on("guildCreate", guild =>{
     const embed = new Discord.MessageEmbed()
-    .addField("Welcome to the Aegis Community!", "Thanks for adding Aegis!")
-    .addField("If you need assistance, the best place to get it is on the offical support hub", "https://discord.gg/9KpYRme")
-    .setColor("#30167c");
-    try {
-        var logchannelIDFinder = guild.channels.find("name", "log-channel").id;
-    } catch (error) {
+        .addField("Welcome to the Aegis Community!", "Thanks for adding Aegis!")
+        .addField("If you need assistance, the best place to get it is on the offical support hub", "https://discord.gg/9KpYRme")
+        .setColor("#30167c");
+
+    var logchannelIDFinder = guild.channels.find("name", "log-channel").id;
+    if(!logchannelIDFinder){
         guild.createChannel("log-channel", "text").then(chan => {
-            config[guild.id].logchannels.default = chan.id;
+            logchannelIDFinder = chan.id;
             chan.send("This is your new log channel! Please set permissions as you wish!");
             embed.addField("To start off, I have created a channel named log-channel where all my message logs will go.", "Feel free to set permissions for this channel, as long as I have the ability to READ_MESSAGES and SEND_MESSAGES!");
         });
@@ -528,6 +594,8 @@ client.on("guildCreate", guild =>{
             },
             "filters": {
                 "discordInvites": false,
+                "repeatMessage": true,
+                "blockedLinks": [],
                 "exempt": []
             }
         }
@@ -544,6 +612,15 @@ client.on("guildCreate", guild =>{
     }
 });
 
+//On Guild Leave
+/* client.on("guildDelete", guild=>{
+    try{
+        delete config[guild.id]
+    }catch(err){
+
+    }
+}); */
+//On voice channel change event
 client.on("voiceStateUpdate", (oldMember, newMember) => {
     
     var embed = new Discord.MessageEmbed();
@@ -591,6 +668,7 @@ client.on("voiceStateUpdate", (oldMember, newMember) => {
     } 
 });
 
+//On user leaves guild event
 client.on("guildMemberRemove", member => {
     var embed = new Discord.MessageEmbed()
     let guild = member.guild
@@ -617,6 +695,7 @@ client.on("guildMemberRemove", member => {
     logchannel.send(`${member.user.tag} left the server`, {embed})
 });
 
+//On user joins guild event
 client.on("guildMemberAdd", member => {
     var embed = new Discord.MessageEmbed();
     let guild = member.guild;
@@ -657,41 +736,6 @@ client.on("guildMemberAdd", member => {
     }
     logchannel.send(`${member.user.tag} joined the server`, {embed})
 });
-
-
-
-/*=====================================================================================
-Event Name:         raw
-Event Description:  Fired when any of the events from the above object are called.
-This allows for asynchronous handling and is useful for adding
-different reactionEmoji for use with menus and other such inputs.
-///DEPRECATED - TODO: CLEAN///
-=====================================================================================*/
-
-/*const events = {
-    MESSAGE_REACTION_ADD: 'messageReactionAdd',
-    MESSAGE_REACTION_REMOVE: 'messageReactionRemove',
-};
-
-client.on('raw', async event => {
-    // `event.t` is the raw event name
-    if (!events.hasOwnProperty(event.t)) return;
-    
-    const { d: data } = event;
-    const user = client.users.cache.get(data.user_id);
-    const channel = client.channels.cache.get(data.channel_id) || await user.createDM();
-    
-    // if the message is already in the cache, don't re-emit the event
-    if (channel.messages.cache.has(data.message_id)) return;
-    const message = await channel.messages.fetch(data.message_id);
-    
-    // custom emojis reactions are keyed in a `name:ID` format, while unicode emojis are keyed by names
-    const emojiKey = (data.emoji.id) ? `${data.emoji.name}:${data.emoji.id}` : data.emoji.name;
-    const reaction = message.reactions.cache.get(emojiKey);
-    
-    client.emit(events[event.t], reaction, user);
-}); */
-//END EVENT raw
 
 /*=====================================================================================
 Event Name:         error
