@@ -167,7 +167,7 @@ client.on("ready", () => {
     });
     
     //client.user.setPresence({ activity: { name: 'with my codebase' }, status: 'idle' });
-    client.user.setPresence({ activity: { name: 'Live (v2.6.2) | a!help' }, status: 'online' });
+    client.user.setPresence({ activity: { name: 'Live (v2.7.0) | a!help' }, status: 'online' });
     
     client.setInterval(() => {
         for(var i in mutes){
