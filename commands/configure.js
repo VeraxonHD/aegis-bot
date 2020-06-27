@@ -136,7 +136,7 @@ module.exports = {
 				if(!pingedRole){
 					return util.missingArgumentsEmbed(message.channel, "configure", "Mentioned Role", "Final");				
 				}
-				if(message.guild.roles.exists("id", pingedRole.id)){
+				if(message.guild.roles.cache.has(pingedRole.id)){
 					config[message.guild.id].autorole.role = pingedRole.id;
 					jsonfile.writeFile("./config.json", config, {spaces: 4}, err =>{
                         if(err){
