@@ -559,13 +559,18 @@ client.on("guildCreate", guild =>{
         .addField("If you need assistance, the best place to get it is on the offical support hub", "https://discord.gg/9KpYRme")
         .setColor("#30167c");
 
-    var logchannelIDFinder = guild.channels.find("name", "log-channel").id;
+    var logchannelIDFinder = guild.channels.cache.find(c => c.name === "log-channel").id;
     if(!logchannelIDFinder){
-        guild.createChannel("log-channel", "text").then(chan => {
-            logchannelIDFinder = chan.id;
-            chan.send("This is your new log channel! Please set permissions as you wish!");
-            embed.addField("To start off, I have created a channel named log-channel where all my message logs will go.", "Feel free to set permissions for this channel, as long as I have the ability to READ_MESSAGES and SEND_MESSAGES!");
-        });
+        try{
+            guild.createChannel("log-channel", "text").then(chan => {
+                logchannelIDFinder = chan.id;
+                chan.send("This is your new log channel! Please set permissions as you wish!");
+                embed.addField("To start off, I have created a channel named log-channel where all my message logs will go.", "Feel free to set permissions for this channel, as long as I have the ability to READ_MESSAGES and SEND_MESSAGES!");
+            });
+        }catch (err){
+            embed.addField(`I tried to add a log channel, but you didn't give me the permission to create channels (MANAGE_CHANNELS). You must create a log channel yourself and run the command \`${config.general.prefix}configure logchannel default <the channel ID>\`, else my capabilities will be severely limited.`)
+            logchannelIDFinder = null;
+        }
     }
     
     if(!config[guild.id]){
