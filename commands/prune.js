@@ -5,7 +5,7 @@ module.exports = {
   usage: "prune <mentionable user>",
   permissions: "MANAGE_MESSAGES",
   execute(message, args, prefix, client, Discord) {
-    var util = require("../returndata.js")
+    var util = require("../util/errors.js")
     let messagecount = parseInt(args[0]);
     
     //If the user does not have the manage messages permission, ignore the execution.

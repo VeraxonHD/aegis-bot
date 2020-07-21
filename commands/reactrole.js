@@ -22,7 +22,7 @@ module.exports = {
         const jsonfile = require("jsonfile");
         var Discord = require("discord.js");
         var client = require("../aegis.js").sendClient();
-        var util = require("../returndata.js");
+        var util = require("../util/errors.js");
 
         if(!args[0]){
             message.reply("You are missing the **operation** argument (create/add/update/delete)"); 

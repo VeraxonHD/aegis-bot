@@ -5,7 +5,7 @@ module.exports = {
     usage: "userinfo <user>",
     permissions: "MANAGE_MESSAGES",
     execute(message, args, client) {
-        var util = require("../returndata.js");
+        var util = require("../util/errors.js");
         if(!message.member.hasPermission("MANAGE_MESSAGES")){
             return util.invalidPermissions(message.channel, "userinfo", "MANAGE_MESSAGES");
         }

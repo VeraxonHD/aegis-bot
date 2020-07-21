@@ -1,5 +1,5 @@
 /*=============================================================================================
-Module Name:        returndata.js
+Module Name:        util/errors.js
 Module Type:        Module Handler
 Module Description: Contains miscelaneous modules to improve efficiency of the code.
 =============================================================================================*/

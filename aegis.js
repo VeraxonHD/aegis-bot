@@ -2,6 +2,7 @@ var Discord = require("discord.js");
 var client = new Discord.Client({partials: ["MESSAGE", "REACTION"]});
 var config = require("./config.json");
 var mutes = require("./mutes.json")
+var globals = require("./util/globalFuncs.js");
 var prefix = config.general.prefix;
 var fs = require("fs");
 var Sequelize = require("sequelize");
@@ -44,46 +45,37 @@ const UserDB = sequelize.define("userdb", {
         type: Sequelize.INTEGER,
         unique: true
     },
-    username: Sequelize.TEXT,
+    username: Sequelize.STRING,
     warnings: Sequelize.INTEGER,
     messagecount: Sequelize.INTEGER,
     accCreationTS: Sequelize.INTEGER,
     lastSeenTS: Sequelize.INTEGER,
-    lastSeenChan: Sequelize.TEXT,
-    lastSeenGuild: Sequelize.TEXT
+    lastSeenChan: Sequelize.STRING,
+    lastSeenGuild: Sequelize.STRING
 });
 
 const EvidenceDB = sequelize.define("evidencedb", {
     userid: Sequelize.INTEGER,
     CaseID: {
-        type: Sequelize.TEXT,
+        type: Sequelize.STRING,
         unique: true
     },
-    typeOf: Sequelize.TEXT,
+    typeOf: Sequelize.STRING,
     dateAdded: Sequelize.INTEGER,
-    evidenceLinks: Sequelize.TEXT,
-    reason: Sequelize.TEXT
+    evidenceLinks: Sequelize.STRING,
+    reason: Sequelize.STRING
 });
 
 const PartyDB = sequelize.define("partydb", {
     partyID: {
-        type: Sequelize.TEXT,
+        type: Sequelize.STRING,
         unique: true
     },
-    partyName: Sequelize.TEXT,
+    partyName: Sequelize.STRING,
     ownerID: Sequelize.INTEGER,
-    voiceChannelID: Sequelize.TEXT,
-    textChannelID: Sequelize.TEXT,
-    categoryID: Sequelize.TEXT
-});
-
-const StarboardDB = sequelize.define("starboarddb", {
-    messageid: {
-        type: Sequelize.TEXT,
-        unique: true
-    },
-    adder: Sequelize.TEXT,
-    time: Sequelize.INTEGER
+    voiceChannelID: Sequelize.STRING,
+    textChannelID: Sequelize.STRING,
+    categoryID: Sequelize.STRING
 });
 
 const ReactDB = sequelize.define("reactdb", {
@@ -101,15 +93,23 @@ const ModmailDB = sequelize.define("modmaildb", {
     guildid: Sequelize.STRING
 });
 
+const GuildDB = sequelize.define("guilddb", {
+    guildid: {
+        type: Sequelize.STRING,
+        unique: true
+    },
+    ownerid: Sequelize.STRING,
+    config: Sequelize.JSON,
+    members: Sequelize.JSON
+});
+
 exports.warnAdd = (userid) =>{
     try{
         sequelize.query(`UPDATE userdbs SET warnings = warnings + 1 WHERE userid = '${userid}'`);
-        var success = true;
-        return success;
+        return true;
     }catch(e){
         console.log(e);
-        var success = false;
-        return success;
+        return false;
     }
 };
 
@@ -137,15 +137,19 @@ exports.sendModmailDB = () =>{
     return ModmailDB;
 }
 
+exports.sendGuildDB = () =>{
+    return GuildDB;
+}
+
 client.on("ready", () => {
     console.log("Aegis Loaded.");
     console.log(`Prefix: ${prefix}`);
     UserDB.sync();
     EvidenceDB.sync();
     PartyDB.sync();
-    StarboardDB.sync();
     ReactDB.sync();
     ModmailDB.sync();
+    GuildDB.sync();
     
     //console.log(client.emojis)
     
@@ -190,13 +194,7 @@ client.on("ready", () => {
                 })
             }
             var mutedRole = guild.roles.cache.find(role => role.name.toLowerCase() === config[guild.id].mutedrole.toLowerCase());
-            var logchannel = guild.channels.cache.get(config[guild.id].logchannels.moderator)
-            if(!logchannel){
-                logchannel = guild.channels.cache.get(config[guild.id].logchannels.default)
-                if(!logchannel){
-                    return;
-                }
-            }
+            var logchannel = globals.getLogChannel(guild, "moderation");
             
             if(Date.now() > time){
                 member.roles.remove(mutedRole);
@@ -402,14 +400,7 @@ client.on("message", message => {
                     reason: "Automated action taken due to spammed Discord Link."
                 });
                 message.reply("This server does not allow users to send Discord Links. You have been warned for this infraction.");
-                var logchannel = message.guild.channels.cache.get(config[message.guild.id].logchannels.moderator);
-                if(!logchannel){
-                    logchannel = message.guild.channels.cache.get(config[message.guild.id].logchannels.default);
-                    if(!logchannel){
-                        message.delete();
-                        return message.channel.send("You do not have a logchannel configured. Contact your server owner.");
-                    }
-                }
+                var logchannel = globals.getLogChannel(guild, "moderation");
                 const embed = new Discord.MessageEmbed()
                     .addField("User ID", message.author.id)
                     .addField("Added by", "Automated Spam Filter")
@@ -445,13 +436,7 @@ antiSpam.on("warnAdd", member =>{
         reason: "Automated action taken due to repeated spam."
     });
     
-    var logchannel = member.guild.channels.cache.get(config[member.guild.id].logchannels.moderator);
-    if(!logchannel){
-        logchannel = member.guild.channels.cache.get(config[member.guild.id].logchannels.default);
-        if(!logchannel){
-            return;
-        }
-    }
+    var logchannel = globals.getLogChannel(member.guild, "moderation");
 
     const embed = new Discord.MessageEmbed()
         .addField("User ID", member.id)
@@ -473,10 +458,7 @@ client.on("messageDelete", message => {
     if(config[message.guild.id].disabledLogs.indexOf("messageDelete") != -1){
         return;
     }
-    var logchannel = message.guild.channels.cache.get(config[message.guild.id].logchannels.default);
-    if(!logchannel){
-        return;
-    }
+    var logchannel = globals.getLogChannel(message.guild, "default");
     
     if(!mcontent){
         mcontent = "I could not find any content. This may have been an image post.";
@@ -512,10 +494,7 @@ client.on("messageUpdate", (oldMessage, newMessage) => {
     .setTimestamp(new Date())
     .setFooter("AEGIS-EDIT Event");
     
-    var logchannel = guild.channels.cache.get(config[guild.id].logchannels.default);
-    if(!logchannel){
-        return;
-    }
+    var logchannel = globals.getLogChannel(guild, "default");
     var userTagForMessage = newMessage.author.tag;
     if(!userTagForMessage){
         userTagForMessage = oldMessage.author.tag;
@@ -525,12 +504,8 @@ client.on("messageUpdate", (oldMessage, newMessage) => {
 
 //On purge command run
 client.on("messageDeleteBulk", messages =>{
-    var logchannel = messages.first().guild.channels.cache.get(config[messages.first().guild.id].logchannels.default);
-    if(!logchannel){
-        return;
-    }else if(config[messages.first().guild.id].disabledLogs.indexOf("messageDeleteBulk") != -1){
-        return;
-    }
+    var logchannel = globals.getLogChannel(messages.first().guild, "moderation");
+
     const embed = new Discord.MessageEmbed()
     .addField("Bulk Delete Log", `${messages.size} messages bulk deleted from #${messages.first().channel.name}`)
     .setColor("#C50000")
@@ -635,13 +610,7 @@ client.on("voiceStateUpdate", (oldMember, newMember) => {
     if(config[guild.id].disabledLogs.indexOf("voiceStateUpdate") != -1){
         return;
     }else{
-        var voicelogchannel = guild.channels.cache.get(config[guild.id].logchannels.voice)
-        if(!voicelogchannel){
-            voicelogchannel = guild.channels.cache.get(config[guild.id].logchannels.default)
-            if(!voicelogchannel){
-                return;
-            }
-        };
+        var voicelogchannel = globals.getLogChannel(guild, "voice");
         
         if(!user){
             user = oldMember.user
@@ -689,13 +658,7 @@ client.on("guildMemberRemove", member => {
     embed.setColor("#C50000")
     embed.setThumbnail(member.user.avatarURL)
     
-    var logchannel = guild.channels.cache.get(config[guild.id].logchannels.migration);
-    if(!logchannel){
-        logchannel = guild.channels.cache.get(config[guild.id].logchannels.default);
-        if(!logchannel){
-            return;
-        }
-    }
+    var logchannel = globals.getLogChannel(guild, "migration");
     
     logchannel.send(`${member.user.tag} left the server`, {embed})
 });
@@ -732,13 +695,7 @@ client.on("guildMemberAdd", member => {
     embed.setColor("#24c500")
     embed.setThumbnail(member.user.avatarURL)
     
-    var logchannel = guild.channels.cache.get(config[guild.id].logchannels.migration);
-    if(!logchannel){
-        logchannel = guild.channels.cache.get(config[guild.id].logchannels.default);
-        if(!logchannel){
-            return;
-        }
-    }
+    var logchannel = globals.getLogChannel(guild, "migration");
     logchannel.send(`${member.user.tag} joined the server`, {embed})
 });
 

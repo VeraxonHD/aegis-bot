@@ -8,17 +8,14 @@ module.exports = {
         var mainfile = require("../aegis.js");
         var Discord = require("discord.js");
         var config = require("../config.json")
-        var util = require("../returndata.js");
+        var util = require("../util/errors.js");
         if(!message.member.hasPermission("MANAGE_MESSAGES")){
             return util.invalidPermissions(message.channel, "warn", "MANAGE_MESSAGES");
         }else{
-            var logchannel = message.guild.channels.cache.get(config[message.guild.id].logchannels.moderator);
+            var logchannel = globals.getLogChannel(message.guild, "moderation");
             if(!logchannel){
-                logchannel = message.guild.channels.cache.get(config[message.guild.id].logchannels.default);
-                if(!logchannel){
-                    return message.channel.send("You do not have a logchannel configured. Contact your server owner.");
-                }
-            }
+                   return message.channel.send("You do not have a logchannel configured. Contact your server owner.");
+               }
 
             var moderator = message.author.tag;
             var tgtmember;

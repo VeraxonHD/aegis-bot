@@ -10,7 +10,7 @@ module.exports = {
             return util.invalidPermissions(message.channel, "evidence", "MANAGE_MESSAGES");
         }
         var caseid = args[0];
-        var util = require("../returndata.js");
+        var util = require("../util/errors.js");
 
         if(message.attachments.exists){
             message.attachments.forEach(element => {

@@ -9,7 +9,7 @@ module.exports = {
         var config = require("../config.json");
         var mainfile = require("../aegis.js");
         var moderator = message.author.tag;
-        var util = require("../returndata.js");
+        var util = require("../util/errors.js");
         var tgtmember;
         var snowflakeRegexTest = new RegExp("([0-9]{18})");
         if(!args[0]){
@@ -33,13 +33,7 @@ module.exports = {
             reason = "No reason supplied."
         }
 
-        var logchannel = message.guild.channels.cache.get(config[message.guild.id].logchannels.moderator)
-            if(!logchannel){
-                logchannel = message.guild.channels.cache.get(config[message.guild.id].logchannels.default)
-                if(!logchannel){
-                    return message.channel.send("You do not have a logchannel configured. Contact your server owner.")
-                }
-            }
+        var logchannel = globals.getLogChannel(message.guild, "moderation");
 
         function makeid() {
             var text = "";

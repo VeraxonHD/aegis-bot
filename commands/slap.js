@@ -5,7 +5,7 @@ module.exports = {
     usage: "slap <userid or mention>",
     permissions: "MANAGE_MESSAGES",
     execute(message, args) {
-        var util = require("../returndata.js");
+        var util = require("../util/errors.js");
         if(!message.member.hasPermission("MANAGE_MESSAGES")){
             return util.invalidPermissions(message.channel, "slap", "MANAGE_MESSAGES");
         }

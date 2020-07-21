@@ -5,7 +5,7 @@ module.exports = {
     usage: "configure *<param, see below>*\n**disabledCommands** (-dc) <command name>\n**disabledLogs** (-dl) <log name>\n**logchannel** (-lc) <log channel type (moderation, voice, migration, suggestions, default)> <channel id>\n**modmail** <-mm) <category channel>\n**autorole** (-ar) <role id>\n**auroroleenable** (-are) (toggle, no params)\n**filters** (-f) <filter name (discordInvites) or (exempt)> <if exempt: userID>",
     permissions: "ADMINISTRATOR",
     execute(message, args) {
-        var util = require("../returndata.js");
+        var util = require("../util/errors.js");
         var config = require("../config.json");
         var fs = require("fs");
         var jsonfile = require("jsonfile");
