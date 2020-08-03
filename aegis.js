@@ -77,15 +77,6 @@ const PartyDB = sequelize.define("partydb", {
     categoryID: Sequelize.TEXT
 });
 
-const StarboardDB = sequelize.define("starboarddb", {
-    messageid: {
-        type: Sequelize.TEXT,
-        unique: true
-    },
-    adder: Sequelize.TEXT,
-    time: Sequelize.INTEGER
-});
-
 const ReactDB = sequelize.define("reactdb", {
     channelid: Sequelize.INTEGER,
     messageid: Sequelize.INTEGER,
@@ -99,6 +90,13 @@ const ModmailDB = sequelize.define("modmaildb", {
     },
     channelid: Sequelize.STRING,
     guildid: Sequelize.STRING
+});
+
+const TagsDB = sequelize.define("tagsdb", {
+    guildid: Sequelize.STRING,
+    name: Sequelize.STRING,
+    command: Sequelize.STRING,
+    creator: Sequelize.STRING
 });
 
 exports.warnAdd = (userid) =>{
@@ -137,15 +135,19 @@ exports.sendModmailDB = () =>{
     return ModmailDB;
 }
 
+exports.sendTagsDB = () =>{
+    return TagsDB;
+};
+
 client.on("ready", () => {
     console.log("Aegis Loaded.");
     console.log(`Prefix: ${prefix}`);
     UserDB.sync();
     EvidenceDB.sync();
     PartyDB.sync();
-    StarboardDB.sync();
     ReactDB.sync();
     ModmailDB.sync();
+    TagsDB.sync();
     
     //console.log(client.emojis)
     
@@ -167,7 +169,7 @@ client.on("ready", () => {
     });
     
     //client.user.setPresence({ activity: { name: 'with my codebase' }, status: 'idle' });
-    client.user.setPresence({ activity: { name: 'Live (v2.7.0) | a!help' }, status: 'online' });
+    client.user.setPresence({ activity: { name: 'Live (v2.8.0) | a!help' }, status: 'online' });
     
     client.setInterval(() => {
         for(var i in mutes){
@@ -232,7 +234,7 @@ client.on("message", message => {
             lastSeenTS: message.createdTimestamp,
             lastSeenChan: message.channel.name,
             lastSeenGuild: message.guild.name
-        }).catch(Sequelize.ValidationError, function (err) {
+        }).catch(function (err) {
             //UserDB.update({messagecount: messagecount + 1}, {where: {userid: message.author.id}});
             sequelize.query(`UPDATE userdbs SET messagecount = messagecount + 1 WHERE userid = '${message.author.id}'`);
             UserDB.update({lastSeenTS: message.createdTimestamp}, {where: {userid: message.author.id}});
