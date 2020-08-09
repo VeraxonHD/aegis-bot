@@ -4,18 +4,21 @@ module.exports = {
     alias: ["config", "cfg"],
     usage: "configure *<param, see below>*\n**disabledCommands** (-dc) <command name>\n**disabledLogs** (-dl) <log name>\n**logchannel** (-lc) <log channel type (moderation, voice, migration, suggestions, default)> <channel id>\n**modmail** <-mm) <category channel>\n**autorole** (-ar) <role id>\n**auroroleenable** (-are) (toggle, no params)\n**filters** (-f) <filter name (discordInvites) or (exempt)> <if exempt: userID>",
     permissions: "ADMINISTRATOR",
-    execute(message, args) {
-        var util = require("../util/errors.js");
-        var config = require("../config.json");
+    async execute(message, args) {
+        var errLib = require("../util/errors.js");
+        var cfsLib = require("../util/globalFuncs.js");
+        var dbsLib = require("../aegis.js");
+        var gConfig = await cfsLib.getGuildConfig(message.guild.id);
+        var GuildDB = require("../aegis.js").sendGuildDB();
         var fs = require("fs");
         var jsonfile = require("jsonfile");
         var Client = require("../aegis.js").sendClient();
         if(!message.member.hasPermission("ADMINISTRATOR")){
-            util.invalidPermissions(message.channel, "configure", "ADMINISTRATOR")
+            errLib.invalidPermissions(message.channel, "configure", "ADMINISTRATOR")
         }else if(!args[0]){
-            util.missingArgumentsEmbed(message.channel, "configure", "Configure Variable", "first")
+            errLib.missingArgumentsEmbed(message.channel, "configure", "Configure Variable", "first")
         }else if(!args[1]){
-            util.missingArgumentsEmbed(message.channel, "configure", "New Value", "second and final")
+            errLib.missingArgumentsEmbed(message.channel, "configure", "New Value", "second and final")
         }else{
             var convar = args[0];
             var value = args[1];
@@ -31,18 +34,17 @@ module.exports = {
                     if(commandArray.indexOf( value) == -1){
                         return message.reply("That is not a valid command and therefore it cannot be disabled.");
                     }else{
-                        if(config[message.guild.id].disabledCommands.indexOf(value) == -1){
-                            config[message.guild.id].disabledCommands.push(value)
+                        if(gConfig.disabledCommands.indexOf(value) == -1){
+                            gConfig.disabledCommands.push(value)
                             return message.reply(`Added **${value}** to the list of disabled commands successfully!`);
                         }else{
-                            var pos = config[message.guild.id].disabledCommands.indexOf(value);
-                            config[message.guild.id].disabledCommands.splice(pos, 1);
+                            var pos = gConfig.disabledCommands.indexOf(value);
+                            gConfig.disabledCommands.splice(pos, 1);
                             message.reply(`Removed **${value}** from the list of disabled commands successfully!`);
                         }
-                        jsonfile.writeFile("./config.json", config, {spaces: 4}, err =>{
-                            if(err){
-                                return message.reply(`There was an error writing to the file. Please try again later or contact Vex#1337`);
-                            }
+                        GuildDB.update({config: gConfig}, {where: {guildid: message.guild.id}}).catch(err =>{
+                            console.error(err)
+                            return message.reply(`There was an error writing to the database. Please try again later or contact Vex#1337`);
                         });
                     }
                 }catch (err){
@@ -62,18 +64,17 @@ module.exports = {
                     if(logArray.indexOf(value) == -1){
                         return message.reply("That is not a valid event logger and therefore it cannot be disabled.")
                     }else{
-                        if(config[message.guild.id].disabledLogs.indexOf(value) == -1){
-                            config[message.guild.id].disabledLogs.push(value)
+                        if(gConfig.disabledLogs.indexOf(value) == -1){
+                            gConfig.disabledLogs.push(value)
                             message.reply(`Added **${value}** to the list of disabled logs successfully!`);
                         }else{
-                            var pos = config[message.guild.id].disabledLogs.indexOf(value);
-                            config[message.guild.id].disabledLogs.splice(pos, 1);
+                            var pos = gConfig.disabledLogs.indexOf(value);
+                            gConfig.disabledLogs.splice(pos, 1);
                             message.reply(`Removed **${value}** from the list of disabled logs successfully!`);
                         }
-                        jsonfile.writeFile("./config.json", config, {spaces: 4}, err =>{
-                            if(err){
-                                return message.reply(`There was an error writing to the file. Please try again later or contact Vex#1337`);
-                            }
+                        GuildDB.update({config: gConfig}, {where: {guildid: message.guild.id}}).catch(err =>{
+                            console.error(err)
+                            return message.reply(`There was an error writing to the database. Please try again later or contact Vex#1337`);
                         });
                     }
                 }catch (err){
@@ -84,7 +85,7 @@ module.exports = {
                 var typeOfChannel = args[1];
                 var channelID = args[2];
                 if(!args[2]){
-                    return util.missingArgumentsEmbed(message.channel, "configure.logchannel", "channel id");
+                    return errLib.missingArgumentsEmbed(message.channel, "configure.logchannel", "channel id");
                 }else{
                     var possibleTypes = [
                         "default",
@@ -101,13 +102,12 @@ module.exports = {
                         }else if(message.guild.channels.cache.get(channelID).type != "text"){
                             return message.reply("That channel is not a text channel. Please use a valid Text Channel Snowflake.");
                         }else{
-                            config[message.guild.id].logchannels[typeOfChannel] = channelID;
-                            jsonfile.writeFile("./config.json", config, {spaces: 4}, err =>{
-                                if(err){
-                                    return message.reply(`There was an error writing to the file. Please try again later or contact Vex#1337`);
-                                }else{
-                                    return message.reply(`Success! Changed LogChannel type **${typeOfChannel}** to **${channelID}**`);
-                                }
+                            gConfig.logchannels[typeOfChannel] = channelID;
+                            GuildDB.update({config: gConfig}, {where: {guildid: message.guild.id}}).then(()=>{
+                                return message.reply(`Success! Changed LogChannel type **${typeOfChannel}** to **${channelID}**`);
+                            }).catch(err =>{
+                                console.error(err)
+                                return message.reply(`There was an error writing to the database. Please try again later or contact Vex#1337`);
                             });
                         }
                     }
@@ -119,66 +119,62 @@ module.exports = {
                 }else if(message.guild.channels.cache.get(value).type != "category"){
                     return message.reply("That channel is not a category channel. Please use a valid Category Channel Snowflake.");
                 }else{
-                    config[message.guild.id].modmail.categorychannel = value;
-                    jsonfile.writeFile("./config.json", config, {spaces: 4}, err =>{
-                        if(err){
-                            return message.reply(`There was an error writing to the file. Please try again later or contact Vex#1337`);
-                        }else{
-                            return message.reply(`Success! Changed Modmail Category Channel to **${value}**`);
-                        }
+                    gConfig.modmail.categorychannel = value;
+                    GuildDB.update({config: gConfig}, {where: {guildid: message.guild.id}}).then(()=>{
+                        return message.reply(`Success! Changed Modmail Category Channel to **${value}**`);
+                    }).catch(err =>{
+                        console.error(err)
+                        return message.reply(`There was an error writing to the database. Please try again later or contact Vex#1337`);
                     });
                 }
             }else if(convar == "autorole" || convar == "-ar"){
 				var pingedRole = message.mentions.roles.first();
-				if(config[message.guild.id].autorole.enabled == false){
-					config[message.guild.id].autorole.enabled = true;
+				if(gConfig.autorole.enabled == false){
+					gConfig.autorole.enabled = true;
 				}
 				if(!pingedRole){
-					return util.missingArgumentsEmbed(message.channel, "configure", "Mentioned Role", "Final");				
+					return errLib.missingArgumentsEmbed(message.channel, "configure", "Mentioned Role", "Final");				
 				}
 				if(message.guild.roles.cache.has(pingedRole.id)){
-					config[message.guild.id].autorole.role = pingedRole.id;
-					jsonfile.writeFile("./config.json", config, {spaces: 4}, err =>{
-                        if(err){
-                            return message.reply(`There was an error writing to the file. Please try again later or contact Vex#1337`);
-                        }else{
-                            return message.reply(`Success! Changed Auto Role to **${pingedRole.name}**`);
-                        }
+                    gConfig.autorole.role = pingedRole.id;
+                    GuildDB.update({config: gConfig}, {where: {guildid: message.guild.id}}).then(()=>{
+                        return message.reply(`Success! Changed Auto Role to **${pingedRole.name}**`);
+                    }).catch(err =>{
+                        console.error(err)
+                        return message.reply(`There was an error writing to the database. Please try again later or contact Vex#1337`);
                     });
 				}else{
 					return message.reply("That is an invalid role. Please mention the role you wish to set as the automatic role.");
 				}
 			}else if(convar == "autoroleenable" || convar == "-are"){
 				if(value == "true"){
-					config[message.guild.id].autorole.enabled = true;
+					gConfig.autorole.enabled = true;
 				}else if(value == "false"){
-					config[message.guild.id].autrole.enabled = false;
+					gConfig.autrole.enabled = false;
 				}else{
 					return message.reply("Please enter only true or false.");
-				}
-				jsonfile.writeFile("./config.json", config, {spaces: 4}, err =>{
-                    if(err){
-                        return message.reply(`There was an error writing to the file. Please try again later or contact Vex#1337`);
-                    }else{
-                        return message.reply(`Success! Changed if autoRoler is enabled to **${value}**`);
-                    }
+                }
+                GuildDB.update({config: gConfig}, {where: {guildid: message.guild.id}}).then(()=>{
+                    return message.reply(`Success! Changed if autoRoler is enabled to **${value}**`);
+                }).catch(err =>{
+                    console.error(err)
+                    return message.reply(`There was an error writing to the database. Please try again later or contact Vex#1337`);
                 });
 			}else if(convar == "filters" || convar == "-f"){
                 if(value == "discordInvites"){
-                    if(config[message.guild.id].filters.discordInvites == true){
-                        config[message.guild.id].filters.discordInvites = false;
+                    if(gConfig.filters.discordInvites == true){
+                        gConfig.filters.discordInvites = false;
                     }else{
-                        config[message.guild.id].filters.discordInvites = true;
+                        gConfig.filters.discordInvites = true;
                     }
-                    jsonfile.writeFile("./config.json", config, {spaces: 4}, err =>{
-                        if(err){
-                            return message.reply(`There was an error writing to the file. Please try again later or contact Vex#1337`);
-                        }else{
-                            return message.reply(`Success! Discord Invite Filter is now: ${config[message.guild.id].filters.discordInvites}`);
-                        }
+                    GuildDB.update({config: gConfig}, {where: {guildid: message.guild.id}}).then(()=>{
+                        return message.reply(`Success! Discord Invite Filter is now: ${gConfig.filters.discordInvites}`);
+                    }).catch(err =>{
+                        console.error(err)
+                        return message.reply(`There was an error writing to the database. Please try again later or contact Vex#1337`);
                     });
                 }else if(value == "exempt" || value == "allow"){
-                    var exemptList = config[message.guild.id].filters.exempt;
+                    var exemptList = gConfig.filters.exempt;
                     var userid = args[2];
                     try{
                         Client.users.cache.get(userid);
@@ -193,10 +189,9 @@ module.exports = {
                         exemptList.splice(pos, 1);
                         message.reply(`Removed <@${userid}> from the list of spam-filter exempt users successfully!`);
                     }
-                    jsonfile.writeFile("./config.json", config, {spaces: 4}, err =>{
-                        if(err){
-                            return message.reply(`There was an error writing to the file. Please try again later or contact Vex#1337`);
-                        }
+                    GuildDB.update({config: gConfig}, {where: {guildid: message.guild.id}}).catch(err =>{
+                        console.error(err)
+                        return message.reply(`There was an error writing to the database. Please try again later or contact Vex#1337`);
                     });
                 }
             }else{

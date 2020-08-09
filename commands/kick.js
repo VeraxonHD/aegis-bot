@@ -4,12 +4,13 @@ module.exports = {
     alias: [],
     usage: "kick <userid/mention> [reason]",
     permissions: "KICK_MEMBERS",
-    execute(message, args) {
+    async execute(message, args) {
+        var errLib = require("../util/errors.js");
+        var cfsLib = require("../util/globalFuncs.js");
         var Discord = require("discord.js");
-        var config = require("../config.json");
+        var gConfig = await cfsLib.getGuildConfig(message.guild.id);
         var moderator = message.author.tag;
         var mainfile = require("../aegis.js");
-        var util = require("../util/errors.js");
         var tgtmember;
         var snowflakeRegexTest = new RegExp("([0-9]{18})");
             if(args[0].length == 18 && snowflakeRegexTest.test(args[0])){
@@ -17,11 +18,11 @@ module.exports = {
             }else if(message.mentions.users.first()){
                 tgtmember = message.mentions.users.first();
             }else{
-                return util.userNotFound(message.channel, args[0]);
+                return errLib.userNotFound(message.channel, args[0]);
             }
 
             if(!message.member.hasPermission("KICK_MEMBERS")){
-                return util.invalidPermissions(message.channel, "kick", "KICK_MEMBERS")
+                return errLib.invalidPermissions(message.channel, "kick", "KICK_MEMBERS")
             }else if(message.guild.member(tgtmember).kickable == false){
                 return message.reply("You cannot kick that user.")
             }
@@ -30,18 +31,8 @@ module.exports = {
                 reason = "No reason supplied."
             }
 
-            var logchannel = globals.getLogChannel(message.guild, "moderation");
-
-        function makeid() {
-            var text = "";
-            var possible = "ABCDEFGHIJKLMNOPQRSTUVWXY0123456789";
-              
-            for (var i = 0; i < 5; i++)
-                text += possible.charAt(Math.floor(Math.random() * possible.length));
-              
-            return text;
-        }
-        var currentcaseid = makeid();
+            var logchannel = await cfsLib.getLogChannel(message.guild, "moderation");
+        var currentcaseid = cfsLib.makeID();
 
         message.guild.member(tgtmember).kick();
 

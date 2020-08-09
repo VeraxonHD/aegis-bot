@@ -4,7 +4,7 @@ module.exports= {
     alias: ["evaluate", "test"],
     usage: "eval <code>",
     permissions: "Only Vex can use this command.",
-    execute(message, args, client, Discord){
+    async execute(message, args, client, Discord){
         const config = require("../config.json");
         const guild = message.guild;
 

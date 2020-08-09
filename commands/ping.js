@@ -4,7 +4,7 @@ module.exports = {
     alias: ["p", "latency"],
     usage: "ping",
     permissions: "NONE",
-    execute(message, args) {
+    async execute(message, args) {
         message.channel.send("Pong!");
     }
 };

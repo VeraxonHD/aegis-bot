@@ -4,12 +4,12 @@ module.exports = {
     alias: ["history", "viewcases"],
     usage: "case <user>",
     permissions: "Self: NONE | Others: MANAGE_MESSAGES",
-    execute(message, args) {
+    async execute(message, args) {
+        var errLib = require("../util/errors.js");
         var mainfile = require("../aegis.js");
         var db = mainfile.sendEvidenceDB();
         var Discord = require("discord.js");
         var dateformat = require("dateformat");
-        var util = require("../util/errors.js");
         var user = args[0];
 
         if(user && !message.member.permissions.has("MANAGE_MESSAGES")){
@@ -25,7 +25,7 @@ module.exports = {
             }else if(message.mentions.users.first()){
                 member = message.mentions.users.first();
             }else{
-                return util.userNotFound(message.channel, args[0]);
+                return errLib.userNotFound(message.channel, args[0]);
             }
 
         db.findAll({where:{userid: member.id}}).then(rowarray =>{

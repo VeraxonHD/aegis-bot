@@ -4,15 +4,17 @@ module.exports = {
     alias: "none",
     usage: "warn <user by id or mention>",
     permissions: "MANAGE_MESSAGES",
-    execute(message, args) {
+    async execute(message, args) {
+        var errLib = require("../util/errors.js");
+        var cfsLib = require("../util/globalFuncs.js");
         var mainfile = require("../aegis.js");
         var Discord = require("discord.js");
-        var config = require("../config.json")
-        var util = require("../util/errors.js");
+        var gConfig = await cfsLib.getGuildConfig(message.guild.id);
+        
         if(!message.member.hasPermission("MANAGE_MESSAGES")){
-            return util.invalidPermissions(message.channel, "warn", "MANAGE_MESSAGES");
+            return errLib.invalidPermissions(message.channel, "warn", "MANAGE_MESSAGES");
         }else{
-            var logchannel = globals.getLogChannel(message.guild, "moderation");
+            var logchannel = await cfsLib.getLogChannel(message.guild, "moderation");
             if(!logchannel){
                    return message.channel.send("You do not have a logchannel configured. Contact your server owner.");
                }
@@ -25,23 +27,13 @@ module.exports = {
             }else if(message.mentions.users.first()){
                 tgtmember = message.mentions.users.first();
             }else{
-                return util.userNotFound(message.channel, args[0]);
+                return errLib.userNotFound(message.channel, args[0]);
             }
             var reason = args.slice(1).join(" ");
             if(!reason){
                 reason = "No reason supplied.";
             }
-
-            function makeid() {
-                var text = "";
-                var possible = "ABCDEFGHIJKLMNOPQRSTUVWXY0123456789";
-              
-                for (var i = 0; i < 5; i++)
-                  text += possible.charAt(Math.floor(Math.random() * possible.length));
-              
-                return text;
-            }
-            var currentcaseid = makeid();
+            var currentcaseid = cfsLib.makeID();
 
             const embed = new Discord.MessageEmbed()
                 .addField("User ID", tgtmember.id)

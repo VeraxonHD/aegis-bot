@@ -4,27 +4,28 @@ module.exports = {
     alias: [],
     usage: "ban <userid/mention> [reason]",
     permissions: "BAN_MEMBERS",
-    execute(message, args, client) {
+    async execute(message, args, client) {
+        var errLib = require("../util/errors.js");
+        var cfsLib = require("../util/globalFuncs.js");
         var Discord = require("discord.js");
-        var config = require("../config.json");
+        var gConfig = await cfsLib.getGuildConfig(message.guild.id);
         var mainfile = require("../aegis.js");
         var moderator = message.author.tag;
-        var util = require("../util/errors.js");
         var tgtmember;
         var snowflakeRegexTest = new RegExp("([0-9]{18})");
         if(!args[0]){
-            return util.missingArgumentsEmbed(message.channel, "Ban", "User ID or Mention", "First, followed by an optional ban reason.")
+            return errLib.missingArgumentsEmbed(message.channel, "Ban", "User ID or Mention", "First, followed by an optional ban reason.")
         }
             if(args[0].length == 18 && snowflakeRegexTest.test(args[0])){
                 tgtmember = message.guild.members.cache.get(args[0]);
             }else if(message.mentions.users.first()){
                 tgtmember = message.mentions.members.first();
             }else{
-                return util.userNotFound(message.channel, args[0]);
+                return errLib.userNotFound(message.channel, args[0]);
             }
 
         if(!message.member.hasPermission("BAN_MEMBERS")){
-            return util.invalidPermissions(message.channel, "ban", "BAN_MEMBERS")
+            return errLib.invalidPermissions(message.channel, "ban", "BAN_MEMBERS")
         }else if(tgtmember.bannable == false){
             return message.reply("You cannot ban that user.")
         }
@@ -33,18 +34,8 @@ module.exports = {
             reason = "No reason supplied."
         }
 
-        var logchannel = globals.getLogChannel(message.guild, "moderation");
-
-        function makeid() {
-            var text = "";
-            var possible = "ABCDEFGHIJKLMNOPQRSTUVWXY0123456789";
-              
-            for (var i = 0; i < 5; i++)
-                text += possible.charAt(Math.floor(Math.random() * possible.length));
-              
-            return text;
-        }
-        var currentcaseid = makeid();
+        var logchannel = await cfsLib.getLogChannel(message.guild, "moderation");
+        var currentcaseid = cfsLib.makeID();
 
         message.reply(`Success! ${tgtmember.user.tag} was successfully banned from ${message.guild.name}. <:banhammer:722877640201076775>`);
         tgtmember.ban({days: 7, reason: reason});

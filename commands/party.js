@@ -4,24 +4,16 @@ module.exports = {
     alias: ["lobby", "newparty", "group"],
     usage: "party <create/invite/delete/kick> <(name: create) (mention/id: invite/kick)>",
     permissions: "NONE",
-    execute(message, args) {
+    async execute(message, args) {
         var db = require("../aegis.js").sendPartyDB();
+        var cfsLib = require("../util/globalFuncs.js");
         if(args[0] == "create"){
             db.findOne({where:{ownerID: message.author.id}}).then(row => {
                 if(!row){
                     if(!args[1]){
                         return message.reply("Please give a name for your party **ONE WORD ONLY**")
                     };
-                    function makeid() {
-                        var text = "";
-                        var possible = "ABCDEFGHIJKLMNOPQRSTUVWXY0123456789";
-                      
-                        for (var i = 0; i < 5; i++)
-                          text += possible.charAt(Math.floor(Math.random() * possible.length));
-                      
-                        return text;
-                    };
-                    var partyIDGen = makeid();
+                    var partyIDGen = cfsLib.makeID();
 
                     message.guild.createChannel(args[1], "category", [{
                         id: message.author.id,
@@ -84,7 +76,7 @@ module.exports = {
                 }else if(message.mentions.users.first()){
                     invitetgt = message.mentions.users.first();
                 }else{
-                    return util.userNotFound(message.channel, args[1]);
+                    return errLib.userNotFound(message.channel, args[1]);
                 };
                 invitetgt.send(`You have been invited to ${row.partyName} by ${message.author.tag}. You can find the voice channel in ${message.guild.name}'s channels sidebar!`);
                 voicechannel.overwritePermissions(invitetgt.id, {
@@ -137,7 +129,7 @@ module.exports = {
                     }else if(message.mentions.users.first()){
                         tgtmember = message.mentions.users.first();
                     }else{
-                        return util.userNotFound(message.channel, args[1]);
+                        return errLib.userNotFound(message.channel, args[1]);
                     };
                     message.guild.members.cache.get(tgtmember.id).edit({
                         channel: channelToMove

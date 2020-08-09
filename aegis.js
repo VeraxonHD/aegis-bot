@@ -2,7 +2,7 @@ var Discord = require("discord.js");
 var client = new Discord.Client({partials: ["MESSAGE", "REACTION"]});
 var config = require("./config.json");
 var mutes = require("./mutes.json")
-var globals = require("./util/globalFuncs.js");
+var cfsLib = require("./util/globalFuncs.js");
 var prefix = config.general.prefix;
 var fs = require("fs");
 var Sequelize = require("sequelize");
@@ -46,8 +46,8 @@ const UserDB = sequelize.define("userdb", {
         unique: true
     },
     username: Sequelize.STRING,
-    warnings: Sequelize.INTEGER,
-    messagecount: Sequelize.INTEGER,
+    globalWarnings: Sequelize.INTEGER,
+    globalMessageCount: Sequelize.INTEGER,
     accCreationTS: Sequelize.INTEGER,
     lastSeenTS: Sequelize.INTEGER,
     lastSeenChan: Sequelize.STRING,
@@ -103,9 +103,16 @@ const GuildDB = sequelize.define("guilddb", {
     members: Sequelize.JSON
 });
 
+const TagsDB = sequelize.define("tagsdb", {
+    guildid: Sequelize.STRING,
+    name: Sequelize.STRING,
+    command: Sequelize.STRING,
+    creator: Sequelize.STRING
+});
+
 exports.warnAdd = (userid) =>{
     try{
-        sequelize.query(`UPDATE userdbs SET warnings = warnings + 1 WHERE userid = '${userid}'`);
+        sequelize.query(`UPDATE userdbs SET globalWarnings = globalWarnings + 1 WHERE userid = '${userid}'`);
         return true;
     }catch(e){
         console.log(e);
@@ -141,7 +148,11 @@ exports.sendGuildDB = () =>{
     return GuildDB;
 }
 
-client.on("ready", () => {
+exports.sendTagsDB = () =>{
+    return TagsDB;
+};
+
+client.on("ready", async () => {
     console.log("Aegis Loaded.");
     console.log(`Prefix: ${prefix}`);
     UserDB.sync();
@@ -150,6 +161,7 @@ client.on("ready", () => {
     ReactDB.sync();
     ModmailDB.sync();
     GuildDB.sync();
+    TagsDB.sync();
     
     //console.log(client.emojis)
     
@@ -171,9 +183,9 @@ client.on("ready", () => {
     });
     
     //client.user.setPresence({ activity: { name: 'with my codebase' }, status: 'idle' });
-    client.user.setPresence({ activity: { name: 'Live (v2.7.0) | a!help' }, status: 'online' });
+    client.user.setPresence({ activity: { name: 'Live (v3.0.0) | a!help' }, status: 'online' });
     
-    client.setInterval(() => {
+    client.setInterval(async () => {
         for(var i in mutes){
             var time = mutes[i].time;
             if(time == "permanent"){
@@ -193,8 +205,8 @@ client.on("ready", () => {
                     }
                 })
             }
-            var mutedRole = guild.roles.cache.find(role => role.name.toLowerCase() === config[guild.id].mutedrole.toLowerCase());
-            var logchannel = globals.getLogChannel(guild, "moderation");
+            var mutedRole = guild.roles.cache.find(role => role.name.toLowerCase() === gConfig.mutedrole.toLowerCase());
+            var logchannel = await cfsLib.getLogChannel(guild, "moderation");
             
             if(Date.now() > time){
                 member.roles.remove(mutedRole);
@@ -219,24 +231,50 @@ client.on("ready", () => {
     }, 3000);
 });
 
-client.on("message", message => {
+client.on("message", async message => {
+    if(message.system || message.webhookID != null){return}
     if(message.channel.type != "dm"){
-        UserDB.create({
-            userid: message.author.id,
-            username: message.author.tag,
-            warnings: 0,
-            messagecount: 1,
-            accCreationTS: message.author.createdTimestamp,
-            lastSeenTS: message.createdTimestamp,
-            lastSeenChan: message.channel.name,
-            lastSeenGuild: message.guild.name
-        }).catch(Sequelize.ValidationError, function (err) {
-            //UserDB.update({messagecount: messagecount + 1}, {where: {userid: message.author.id}});
-            sequelize.query(`UPDATE userdbs SET messagecount = messagecount + 1 WHERE userid = '${message.author.id}'`);
-            UserDB.update({lastSeenTS: message.createdTimestamp}, {where: {userid: message.author.id}});
-            UserDB.update({lastSeenChan: message.channel.name}, {where: {userid: message.author.id}});
-            UserDB.update({lastSeenGuild: message.guild.name}, {where: {userid: message.author.id}});
-        });
+        var gConfig = await cfsLib.getGuildConfig(message.guild.id);
+        GuildDB.findOne({where:{guildid: message.guild.id}}).then(row =>{
+            if(!row){
+                console.log("bruh")
+            }else{
+                var guildUserData = row.members;
+                if(!guildUserData[message.author.id]){
+                    guildUserData[message.author.id] = {
+                        "id": message.author.id,
+                        "messageCount": 1,
+                        "joinDateTime": message.member.joinedAt,
+                        "warnings": 0
+                    }
+                    console.log(`Added user data of ${message.author.tag} to ${message.guild.name}`)
+                }else{
+                    guildUserData[message.author.id].messageCount++;
+                }
+                GuildDB.update({members: guildUserData}, {where: {guildid: message.guild.id}});
+            }
+        })
+        UserDB.findOne({
+            where: {userid: message.author.id}
+        }).then(row =>{
+            if(!row){
+                UserDB.create({
+                    userid: message.author.id,
+                    username: message.author.tag,
+                    globalWarnings: 0,
+                    globalMessageCount: 1,
+                    accCreationTS: message.author.createdTimestamp,
+                    lastSeenTS: message.createdTimestamp,
+                    lastSeenChan: message.channel.name,
+                    lastSeenGuild: message.guild.name
+                })
+            }else{
+                sequelize.query(`UPDATE userdbs SET globalMessageCount = globalMessageCount + 1 WHERE userid = '${message.author.id}'`);
+                UserDB.update({lastSeenTS: message.createdTimestamp}, {where: {userid: message.author.id}});
+                UserDB.update({lastSeenChan: message.channel.name}, {where: {userid: message.author.id}});
+                UserDB.update({lastSeenGuild: message.guild.name}, {where: {userid: message.author.id}});
+            }
+        })
         
         if(!message.content.startsWith(prefix) || message.author.id == client.user.id) return;
         
@@ -248,7 +286,7 @@ client.on("message", message => {
             return;
         }
         
-        if(config[message.guild.id].disabledCommands.indexOf(commandName) != -1){
+        if(gConfig.disabledCommands.indexOf(commandName) != -1){
             return message.reply("That command has been disabled by your server administrators.")
         }
         try{
@@ -261,14 +299,15 @@ client.on("message", message => {
             .setColor("#ff0000");
             message.channel.send({embed});
         }
-    }else if (message.channel.type == "dm"){
+    }/* TODO: RE-WRITE MODMAIL
+    else if (message.channel.type == "dm"){
         if(message.author.id == client.user.id){
             return;
         }
         
         //Establish Guild IDs
         for(var guild in config){
-            if(config[guild].modmail && config[guild].modmail.enabled == true){
+            if(gConfig[guild].modmail && gConfig[guild].modmail.enabled == true){
                 var serveGuild = client.guilds.cache.get(guild);
             }
         }
@@ -282,7 +321,7 @@ client.on("message", message => {
         }
         
         //Establish Category Channel ID
-        var catChan = serveGuild.channels.cache.get(config[serveGuild.id].modmail.categorychannel)
+        var catChan = serveGuild.channels.cache.get(gConfig[serveGuild.id].modmail.categorychannel)
         
         try{
             //Attempt to find the member in the database
@@ -308,7 +347,7 @@ client.on("message", message => {
                             channelid: newChan.id,
                             guildid: serveGuild.id
                         })
-                        for(var allowedRole in config[serveGuild.id].modmail.allowedRoles){
+                        for(var allowedRole in gConfig[serveGuild.id].modmail.allowedRoles){
                             try{
                                 newChan.overwritePermissions([
                                     {
@@ -333,11 +372,11 @@ client.on("message", message => {
         }catch (err){
             console.log(err);
         }
-    }  
+    } */  
 });
 
-//MODMAIL CHANNEL COMMAND HANDLING
-client.on("message", message => {
+//MODMAIL CHANNEL COMMAND HANDLING - TODO: RE-WRITE MODMAIL
+/* client.on("message", async message => {
     //If the user DMs the bot, disregard it.
     if(message.channel.type == "dm") return;
     //If the message does not start with the prefix or the bot is the author of the message, disregard it.
@@ -347,7 +386,7 @@ client.on("message", message => {
     Function Name:          Command Handler
     Function Description:   Handles the loading and execution of all command modules
     quickly and efficiently.
-    =================================================================================*/
+    ================================================================================
     
     //Set arguments array equal to each word split by a space character
     const args = message.content.slice(prefix.length).split(" ");
@@ -372,25 +411,25 @@ client.on("message", message => {
         .setColor("#ff0000");
         message.channel.send({embed});
     }  
-})
+}) */
 
 //Discord Invite Link Filter Handling
-client.on("message", message => {
+client.on("message", async message => {
     if(message.channel.type == "dm") return;    
     var guild = message.guild;
-    var guildConfig = config[guild.id];
+    var gConfig = await cfsLib.getGuildConfig(guild.id);
     
-    if(guildConfig.filters.discordInvites == true){
+    if(gConfig.filters.discordInvites == true){
         var regexpapttern = /(?:https?:\/\/)?(?:www\.)?discord(?:\.gg|(?:app)?\.com\/invite)\/(\S+)/
         var regexp = new RegExp(regexpapttern);
         if(!regexp.test(message.content)){
             return
         }
         var captures = message.content.match(regexpapttern)
-        client.fetchInvite(captures[0]).then(invite =>{
+        client.fetchInvite(captures[0]).then(async invite =>{
             //guild.invites.has?
-            if(invite.guild.id != guild.id && !guildConfig.filters.exempt.includes(message.author.id)){
-                var currentcaseid = makeid();
+            if(invite.guild.id != guild.id && !gConfig.filters.exempt.includes(message.author.id)){
+                var currentcaseid = cfsLib.makeID();
                 EvidenceDB.create({
                     userid: message.author.id,
                     CaseID: currentcaseid,
@@ -400,7 +439,7 @@ client.on("message", message => {
                     reason: "Automated action taken due to spammed Discord Link."
                 });
                 message.reply("This server does not allow users to send Discord Links. You have been warned for this infraction.");
-                var logchannel = globals.getLogChannel(guild, "moderation");
+                var logchannel = await cfsLib.getLogChannel(guild, "moderation");
                 const embed = new Discord.MessageEmbed()
                     .addField("User ID", message.author.id)
                     .addField("Added by", "Automated Spam Filter")
@@ -412,21 +451,22 @@ client.on("message", message => {
                 message.delete();
             } 
         }).catch(console.error());
-        console.log(guildConfig.filters.repeatMessage);
+        console.log(gConfig.filters.repeatMessage);
     }
 });
 
 //General Spam Detection (Repeat/Identical Messages)
-client.on("message", message =>{
+client.on("message", async message =>{
     if(message.channel.type == "dm") return;
     var guild = message.guild;
+    var gConfig = await cfsLib.getGuildConfig(guild.id);
 
-    if(config[guild.id].filters.repeatMessage == true){
+    if(gConfig.filters.repeatMessage == true){
         antiSpam.message(message);
     }
 });
-antiSpam.on("warnAdd", member =>{
-    var currentcaseid = makeid();
+antiSpam.on("warnAdd", async member =>{
+    var currentcaseid = cfsLib.makeID();
     EvidenceDB.create({
         userid: member.id,
         CaseID: currentcaseid,
@@ -436,7 +476,7 @@ antiSpam.on("warnAdd", member =>{
         reason: "Automated action taken due to repeated spam."
     });
     
-    var logchannel = globals.getLogChannel(member.guild, "moderation");
+    var logchannel = await cfsLib.getLogChannel(member.guild, "moderation");
 
     const embed = new Discord.MessageEmbed()
         .addField("User ID", member.id)
@@ -449,16 +489,17 @@ antiSpam.on("warnAdd", member =>{
 });
 
 //On message delete event
-client.on("messageDelete", message => {
+client.on("messageDelete", async message => {
     var mcontent = message.content;
+    var gConfig = await cfsLib.getGuildConfig(message.guild.id);
     if(mcontent.length > 1023){
         mcontent = "ERR: Message Content too long to post."
     }
     
-    if(config[message.guild.id].disabledLogs.indexOf("messageDelete") != -1){
+    if(gConfig.disabledLogs.indexOf("messageDelete") != -1){
         return;
     }
-    var logchannel = globals.getLogChannel(message.guild, "default");
+    var logchannel = await cfsLib.getLogChannel(message.guild, "default");
     
     if(!mcontent){
         mcontent = "I could not find any content. This may have been an image post.";
@@ -474,19 +515,20 @@ client.on("messageDelete", message => {
 });
 
 //On message edit event
-client.on("messageUpdate", (oldMessage, newMessage) => {
+client.on("messageUpdate", async (oldMessage, newMessage) => {
+    var guild = newMessage.guild;
+    var gConfig = await cfsLib.getGuildConfig(guild.id);
     if(!oldMessage.content || !newMessage.content){
         return;
     }else if(oldMessage.content.length == 0 || oldMessage.author.id === client.user.id || oldMessage.content == newMessage.content || oldMessage.content.length > 1023 || newMessage.content.length > 1023){
         return;
     }else if(newMessage.content.length == 0 || newMessage.author.id === client.user.id){
         return;
-    }else if(config[newMessage.guild.id].disabledLogs.indexOf("messageUpdate") != -1){
+    }else if(gConfig.disabledLogs.indexOf("messageUpdate") != -1){
         return;
     }
-    var guild = newMessage.guild;
     var embed = new Discord.MessageEmbed()
-    .addField("Ther ID is", `${newMessage.author.id}`, false)
+    .addField("Their ID is", `${newMessage.author.id}`, false)
     .addField("Old Message Content", oldMessage.content, false)
     .addField("New Message Content", newMessage.content, false)
     .addField("The channel is", "#" + newMessage.channel.name)
@@ -494,17 +536,17 @@ client.on("messageUpdate", (oldMessage, newMessage) => {
     .setTimestamp(new Date())
     .setFooter("AEGIS-EDIT Event");
     
-    var logchannel = globals.getLogChannel(guild, "default");
+    var logchannel = await cfsLib.getLogChannel(guild, "default");
     var userTagForMessage = newMessage.author.tag;
     if(!userTagForMessage){
         userTagForMessage = oldMessage.author.tag;
     }
-    logchannel.send(`**${userTagForMessage}**'s message was edited!`, {embed});    
+    logchannel.send(`**${userTagForMessage}**'s message was edited!`, {embed});
 });
 
 //On purge command run
-client.on("messageDeleteBulk", messages =>{
-    var logchannel = globals.getLogChannel(messages.first().guild, "moderation");
+client.on("messageDeleteBulk", async messages =>{
+    var logchannel = await cfsLib.getLogChannel(messages.first().guild, "moderation");
 
     const embed = new Discord.MessageEmbed()
     .addField("Bulk Delete Log", `${messages.size} messages bulk deleted from #${messages.first().channel.name}`)
@@ -547,70 +589,68 @@ client.on("guildCreate", guild =>{
             logchannelIDFinder = null;
         }
     }
-    
-    if(!config[guild.id]){
-        config[guild.id] = {
-            "guildid": guild.id,
-            "name": guild.name,
-            "owner": guild.owner.id,
-            "disabledCommands": [],
-            "disabledLogs": [],
-            "logchannels": {
-                "default": logchannelIDFinder,
-                "moderation": "",
-                "voice": "",
-                "migration": "",
-                "suggestions": ""
-            },
-            "mutedrole": "muted",
-            "autorole": {
-                "enabled": false,
-                "role": ""
-            },
-            "modmail": {
-                "enabled": false,
-                "categorychannel": "",
-                "allowedRoles": []
-            },
-            "filters": {
-                "discordInvites": false,
-                "repeatMessage": true,
-                "blockedLinks": [],
-                "exempt": []
-            }
+
+    GuildDB.findOne({where: {guildid: guild.id}}).then(row =>{
+        if(!row){
+            console.log("Create these nuts")
+            GuildDB.create({
+                guildid: guild.id,
+                ownerid: guild.owner.id,
+                config: {
+                    "guildid": guild.id,
+                    "name": guild.name,
+                    "owner": guild.owner.id,
+                    "disabledCommands": [],
+                    "disabledLogs": [],
+                    "logchannels": {
+                        "default": logchannelIDFinder,
+                        "moderation": "",
+                        "voice": "",
+                        "migration": "",
+                        "suggestions": ""
+                    },
+                    "mutedrole": "muted",
+                    "autorole": {
+                        "enabled": false,
+                        "role": ""
+                    },
+                    "modmail": {
+                        "enabled": false,
+                        "categorychannel": "",
+                        "allowedRoles": []
+                    },
+                    "filters": {
+                        "discordInvites": false,
+                        "repeatMessage": true,
+                        "blockedLinks": [],
+                        "exempt": []
+                    }
+                },
+                members: {
+                    [client.user.id]: {
+                        "id": client.user.id,
+                        "messageCount": 1,
+                        "joinDateTime": new Date(),
+                        "warnings": 0
+                    }
+                }
+            })
         }
-        
-        jsonfile.writeFile("config.json", config, {spaces: 4}, err =>{
-            if(!err){
-                guild.owner.send({embed}).catch(console.log);
-            }else{
-                console.log(err);
-            }
-        })
-    }else{
-        return
-    }
+    })
 });
 
-//On Guild Leave
-/* client.on("guildDelete", guild=>{
-    try{
-        delete config[guild.id]
-    }catch(err){
-
-    }
-}); */
 //On voice channel change event
-client.on("voiceStateUpdate", (oldMember, newMember) => {
+client.on("voiceStateUpdate", async (oldMember, newMember) => {
     
     var embed = new Discord.MessageEmbed();
-    var guild = oldMember.guild
+    var guild = newMember.guild
+    var gConfig = await cfsLib.getGuildConfig(guild.id);
     var user = newMember.user
     
-    if(config[guild.id].disabledLogs.indexOf("voiceStateUpdate") != -1){
+    if(gConfig.disabledLogs.indexOf("voiceStateUpdate") != -1){
         return;
     }else{
-        var voicelogchannel = globals.getLogChannel(guild, "voice");
+        var voicelogchannel = cfsLib.getLogChannel(guild, "voice");
         
         if(!user){
             user = oldMember.user
@@ -643,11 +683,13 @@ client.on("voiceStateUpdate", (oldMember, newMember) => {
 });
 
 //On user leaves guild event
-client.on("guildMemberRemove", member => {
+client.on("guildMemberRemove", async member => {
+    if(member.id == client.user.id){return}
     var embed = new Discord.MessageEmbed()
     let guild = member.guild
+    var gConfig = await cfsLib.getGuildConfig(guild.id);
     
-    if(config[guild.id].disabledLogs.indexOf("guildMemberRemove") != -1){
+    if(gConfig.disabledLogs.indexOf("guildMemberRemove") != -1){
         return;
     }
     
@@ -658,21 +700,23 @@ client.on("guildMemberRemove", member => {
     embed.setColor("#C50000")
     embed.setThumbnail(member.user.avatarURL)
     
-    var logchannel = globals.getLogChannel(guild, "migration");
+    var logchannel = await cfsLib.getLogChannel(guild, "migration");
     
     logchannel.send(`${member.user.tag} left the server`, {embed})
 });
 
 //On user joins guild event
-client.on("guildMemberAdd", member => {
+client.on("guildMemberAdd", async member => {
+    if(member.id == client.user.id){return}
     var embed = new Discord.MessageEmbed();
     let guild = member.guild;
+    var gConfig = await cfsLib.getGuildConfig(guild.id);
     
-    if(config[guild.id].disabledLogs.indexOf("guildMemberAdd") != -1){
+    if(gConfig.disabledLogs.indexOf("guildMemberAdd") != -1){
         return;
     }
-    if(config[guild.id].autorole.enabled == true && config[guild.id].autorole.role != null){
-        var tryRole = config[guild.id].autorole.role;
+    if(gConfig.autorole.enabled == true && gConfig.autorole.role != null){
+        var tryRole = gConfig.autorole.role;
         var role = guild.roles.cache.get(tryRole);
         if(!role){
             console.log('Please add a correct role ID to the autorole config.');
@@ -695,7 +739,7 @@ client.on("guildMemberAdd", member => {
     embed.setColor("#24c500")
     embed.setThumbnail(member.user.avatarURL)
     
-    var logchannel = globals.getLogChannel(guild, "migration");
+    var logchannel = await cfsLib.getLogChannel(guild, "migration");
     logchannel.send(`${member.user.tag} joined the server`, {embed})
 });
 
@@ -783,16 +827,6 @@ client.on("messageReactionRemove", async (messageReaction, user) =>{
     }
 });
 //END EVENT messageReactionRemove
-
-function makeid() {
-    var text = "";
-    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXY0123456789";
-  
-    for (var i = 0; i < 5; i++)
-      text += possible.charAt(Math.floor(Math.random() * possible.length));
-  
-    return text;
-}
 
 process.on("unhandledRejection", err => {
     console.error("Uncaught Promise Error: \n", err);

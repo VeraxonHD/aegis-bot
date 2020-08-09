@@ -5,16 +5,17 @@ module.exports= {
     alias: ["cl", "end"],
     usage: "anonreply <message>",
     permissions: "NONE, Gated by access to Category Channel.",
-    execute(message){
+    async execute(message){
         //init variables
         var guild = message.guild;
+        var cfsLib = require("../util/globalFuncs.js");
         var Discord = require("discord.js");
         var PastebinAPI = require('pastebin-js');
-        var config = require("../config.json")
+        var gConfig = await cfsLib.getGuildConfig(message.guild.id);
             pastebin = new PastebinAPI({
             'api_dev_key' : 'acb37cf990dfdeb81006618f4d0ca1a9'
             });
-        var logchannel = globals.getLogChannel(guild, "moderation");
+        var logchannel = await cfsLib.getLogChannel(guild, "moderation");
         if(!logchannel) return;
         var mmDB = require("../aegis.js").sendModmailDB();
       

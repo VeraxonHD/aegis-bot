@@ -5,14 +5,14 @@ module.exports= {
     alias: ["r"],
     usage: "reply <message>",
     permissions: "NONE - Gated by access to Category Channel.",
-    execute(message, args, Discord){
+    async execute(message, args, Discord){
         //Init variables and dependencies
         var main = require("../aegis.js");
         var mmDB = main.sendModmailDB();                        //Modmail table in db
         var client = main.sendClient();                         //The client object
-        var config = require("../config.json");
+        var gConfig = await cfsLib.getGuildConfig(message.guild.id);
         for(var guild in config){
-            if(config[guild].modmail && config[guild].modmail.enabled == true){
+            if(gConfig.modmail && gConfig.modmail.enabled == true){
                 var serveGuild = client.guilds.cache.get(guild);
             }
         }                                                       //The guild object for the main guild.

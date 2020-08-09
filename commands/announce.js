@@ -4,7 +4,7 @@ module.exports = {
     alias: ["NONE"],
     usage: `announce <channel> "<Role Name>" <content> (include the ""s)`,
     permissions: "NONE",
-    execute(message, args) {
+    async execute(message, args) {
         var Discord = require("discord.js");
 
         var tgtChannel = message.mentions.channels.first();

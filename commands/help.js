@@ -4,12 +4,11 @@ module.exports = {
     alias: ["support", "commands"],
     usage: "help [command name]",
     permissions: "NONE",
-    execute(message, args, prefix, client, Discord) {
+    async execute(message, args, prefix, client, Discord) {
         var fs = require("fs");
         const embed = new Discord.MessageEmbed();
         var commandName = args[0];
-        var config = require("../config.json");
-        console.log(config)
+        var config = require("../config.json")
             if(!args[0]){
                 var commandlist = [];
                 var counter = 0
