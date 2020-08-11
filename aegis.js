@@ -7,7 +7,6 @@ var prefix = config.prefix;
 var fs = require("fs");
 var Sequelize = require("sequelize");
 var jsonfile = require("jsonfile");
-var dateformat = require("dateformat");
 const AntiSpam = require('discord-anti-spam');
 const antiSpam = new AntiSpam({
     warnThreshold: 4, // Amount of messages sent in a row that will cause a warning.
@@ -173,7 +172,7 @@ client.on("ready", async () => {
     });
     
     //client.user.setPresence({ activity: { name: 'with my codebase' }, status: 'idle' });
-    client.user.setPresence({ activity: { name: 'Live (v3.0.0) | a!help' }, status: 'online' });
+    client.user.setPresence({ activity: { name: `Live (v3.0.0) | ${config.prefix}help` }, status: 'online' });
     
     client.setInterval(async () => {
         for(var i in mutes){
