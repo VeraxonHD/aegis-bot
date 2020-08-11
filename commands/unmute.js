@@ -4,22 +4,23 @@ module.exports = {
 	alias: ["um"],
 	usage: "unmute <userid or mention>",
 	permissions: "MANAGE_MESSAGES",
-	execute(message, args, client) {
+	async execute(message, args, client) {
 		
 		//Dependencies
 		var Discord = require("discord.js");
-		var config = require("../config.json");
-		var mutes = require("../mutes.json");
+		var errLib = require("../util/errors.js");
+		var cfsLib = require("../util/globalFuncs.js");
+		var gConfig = await cfsLib.getGuildConfig(message.guild.id);
+		var mutes = require("../store/mutes.json");
 		var mainfile = require("../aegis.js");
 		var ms = require("ms");
 		var jsonfile = require("jsonfile");
-		var util = require("../returndata.js");
 		var client = mainfile.sendClient();
 		
 		//Module Variables
 		var guild = message.guild;
-		var mutedRole = guild.roles.cache.find(role => role.name.toLowerCase() === config[guild.id].mutedrole.toLowerCase());
-		var logchannel = message.guild.channels.cache.get(config[guild.id].modlogchannelID);
+		var mutedRole = guild.roles.cache.find(role => role.name.toLowerCase() === gConfig.mutedrole.toLowerCase());
+		var logchannel = await cfsLib.getLogChannel(guild, "moderation");
 		var moderator = message.author;
 		var time = args[1];
 		var reason = args.slice(2).join(" ");
@@ -27,15 +28,10 @@ module.exports = {
 		
 		//Permission Check/Validation
 		if(!message.member.hasPermission("MANAGE_MESSAGES")){
-			return util.invalidPermissions(message.channel, "mute", "MANAGE_MESSAGES")
-		}else{
-			var logchannel = message.guild.channels.cache.get(config[message.guild.id].logchannels.moderator);
-			if(!logchannel){
-				logchannel = message.guild.channels.cache.get(config[message.guild.id].logchannels.default);
-				if(!logchannel){
-					return message.channel.send("You do not have a logchannel configured. Contact your server owner.");
-				}
-			}
+			return errLib.invalidPermissions(message.channel, "mute", "MANAGE_MESSAGES")
+		}
+		if(!logchannel){
+			return message.channel.send("You do not have a logchannel configured. Contact your server owner.");
 		}
 		if(!mutedRole){
 			mutedRole = guild.roles.cache.find(role => role.name.toLowerCase() === "muted");
@@ -51,7 +47,7 @@ module.exports = {
 		}else if(message.mentions.users.first()){
 			tgtmember = message.mentions.members.first();
 		}else{
-			return util.userNotFound(message.channel, args[0]);
+			return errLib.userNotFound(message.channel, args[0]);
 		}
 		
 		if(tgtmember.roles.cache.has(mutedRole.id)){

@@ -4,16 +4,11 @@ module.exports = {
     alias: ["suggestion", "feedback"],
     usage: "suggest <content>",
     permissions: "NONE",
-    execute(message, args) {
+    async execute(message, args) {
         var Discord = require("discord.js");
-        var config = require("../config.json");
-
-        var suggestionsChannel = message.guild.channels.cache.get(config[message.guild.id].logchannels.suggestions);
-        if(!suggestionsChannel || suggestionsChannel.type != "text"){
-            suggestionsChannel = message.guild.channels.cache.get(config[message.guild.id].logchannels.default);
-        }
-
-        console.log(suggestionsChannel.name);
+        var cfsLib = require("../util/globalFuncs.js");
+        var gConfig = await cfsLib.getGuildConfig(message.guild.id);
+        var suggestionsChannel = await cfsLib.getLogChannel(message.guild, "suggestions");
 
         const embed = new Discord.MessageEmbed()
             .setAuthor(message.author.tag, message.author.avatarURL)

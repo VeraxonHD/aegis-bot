@@ -3,13 +3,20 @@ module.exports = {
     description: "Fetches cases and evidence against a user.",
     alias: ["history", "viewcases"],
     usage: "case <user>",
-    permissions: "NONE",
-    execute(message, args) {
+    permissions: "Self: NONE | Others: MANAGE_MESSAGES",
+    async execute(message, args) {
+        var errLib = require("../util/errors.js");
         var mainfile = require("../aegis.js");
         var db = mainfile.sendEvidenceDB();
         var Discord = require("discord.js");
         var dateformat = require("dateformat");
-        var util = require("../returndata.js");
+        var user = args[0];
+
+        if(user && !message.member.permissions.has("MANAGE_MESSAGES")){
+            return message.reply("You do not have permission to view others' cases.")
+        }else if(!user){
+            user = message.author.id;
+        }
 
         var member;
             var snowflakeRegexTest = new RegExp("([0-9]{18})");
@@ -18,7 +25,7 @@ module.exports = {
             }else if(message.mentions.users.first()){
                 member = message.mentions.users.first();
             }else{
-                return util.userNotFound(message.channel, args[0]);
+                return errLib.userNotFound(message.channel, args[0]);
             }
 
         db.findAll({where:{userid: member.id}}).then(rowarray =>{

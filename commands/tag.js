@@ -6,15 +6,15 @@ module.exports = {
     alias: ["cc", "custcom"],
     usage: "tag <{name}|create|delete|list> (create/delete)<name> (create)<name> <content>",
     permissions: "(create/delete)[MANAGE_MESSAGES] (view/list)[NONE]",
-    execute(message, args) {
+    async execute(message, args) {
         var Discord = require("discord.js");
         var cmdType = args[0];
         var mainfile = require("../aegis.js")
-        var util = require("../returndata.js");
+        var errLib = require("../util/errors.js");
         var tagsdb = mainfile.sendTagsDB();
         if(cmdType == "create"){
             if(!message.member.hasPermission("MANAGE_MESSAGES")){
-                return util.invalidPermissions(message.channel, "tag.create", "MANAGE_MESSAGES");
+                return errLib.invalidPermissions(message.channel, "tag.create", "MANAGE_MESSAGES");
             }
             else if(!args[1]){
                 return message.reply("Please define a (unique) tag name.");
@@ -55,7 +55,7 @@ module.exports = {
             }
         }else if(cmdType == "delete"){
             if(!message.member.hasPermission("MANAGE_MESSAGES")){
-                return util.invalidPermissions(message.channel, "tag.create", "MANAGE_MESSAGES");
+                return errLib.invalidPermissions(message.channel, "tag.create", "MANAGE_MESSAGES");
             }
             tagsdb.destroy({
                 where: {

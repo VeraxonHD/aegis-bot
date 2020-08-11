@@ -4,11 +4,11 @@ module.exports= {
     alias: ["evaluate", "test"],
     usage: "eval <code>",
     permissions: "Only Vex can use this command.",
-    execute(message, args, client, Discord){
+    async execute(message, args, client, Discord){
         const config = require("../config.json");
         const guild = message.guild;
 
-        if(message.author.id != config.general.ownerID) return
+        if(message.author.id != config.ownerID) return
         function clean(text) {
             if (typeof(text) === "string")
                 return text.replace(/`/g, "`" + String.fromCharCode(8203)).replace(/@/g, "@" + String.fromCharCode(8203));

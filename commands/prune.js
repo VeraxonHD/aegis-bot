@@ -4,13 +4,13 @@ module.exports = {
   alias: ["purge", "bulkdelete", "delete", "del"],
   usage: "prune <mentionable user>",
   permissions: "MANAGE_MESSAGES",
-  execute(message, args, prefix, client, Discord) {
-    var util = require("../returndata.js")
+  async execute(message, args, prefix, client, Discord) {
+    var errLib = require("../util/errors.js")
     let messagecount = parseInt(args[0]);
     
     //If the user does not have the manage messages permission, ignore the execution.
     if (!message.member.hasPermission("MANAGE_MESSAGES")){
-      return util.invalidPermissions(message.channel, "prune", "MANAGE_MESSAGES")
+      return errLib.invalidPermissions(message.channel, "prune", "MANAGE_MESSAGES")
     }
     
     //If the message count is not a number, return an error message
@@ -31,7 +31,7 @@ module.exports = {
       const target = message.mentions.users.first();
       //if no target, reply user not found error message.
       if(!target){
-        return util.userNotFound(message.channel, args[1])
+        return errLib.userNotFound(message.channel, args[1])
       }
       //Fetch messages up to the message count limit + 2 (includes the user's message and the confirmation message for clean up purposes.)  
       message.channel.messages.fetch({limit: messagecount + 2})

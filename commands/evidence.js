@@ -4,13 +4,13 @@ module.exports = {
     alias: ["addevidence", "newevidence"],
     usage: "warnevidence + uploaded image",
     permissions: "MANAGE_MESSAGES",
-    execute(message, args) {
+    async execute(message, args) {
         var Discord = require("discord.js")
         if(!message.member.hasPermission("MANAGE_MESSAGES")){
-            return util.invalidPermissions(message.channel, "evidence", "MANAGE_MESSAGES");
+            return errLib.invalidPermissions(message.channel, "evidence", "MANAGE_MESSAGES");
         }
         var caseid = args[0];
-        var util = require("../returndata.js");
+        var errLib = require("../util/errors.js");
 
         if(message.attachments.exists){
             message.attachments.forEach(element => {
