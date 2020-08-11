@@ -34,3 +34,30 @@ exports.makeID = () => {
   
     return text;
 }
+
+exports.addWarn = async (userid, guildid) =>{
+    const main = require("../aegis.js");
+    const GuildDB = main.sendGuildDB();
+    const UserDB = main.sendUserDB();
+    var gSuccess = false;
+    var uSuccess = false;
+
+    await GuildDB.findOne({where:{guildid: guildid}}).then(async gData =>{
+        gData.members[userid].warnings++;
+        await GuildDB.update({members: gData.members}, {where:{guildid: guildid}}).then(()=>{
+            gSuccess = true;
+        })
+    });
+    await UserDB.findOne({where:{userid: userid}}).then(async uData =>{
+        uData.globalWarnings++;
+        await UserDB.update({globalWarnings: uData.globalWarnings}, {where:{userid: userid}}).then(()=>{
+            uSuccess = true;
+        })
+    });
+
+    if(gSuccess && uSuccess){
+        return true;
+    }else{
+        return false;
+    }
+};
