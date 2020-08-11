@@ -8,7 +8,7 @@ module.exports= {
         const config = require("../config.json");
         const guild = message.guild;
 
-        if(message.author.id != config.general.ownerID) return
+        if(message.author.id != config.ownerID) return
         function clean(text) {
             if (typeof(text) === "string")
                 return text.replace(/`/g, "`" + String.fromCharCode(8203)).replace(/@/g, "@" + String.fromCharCode(8203));
