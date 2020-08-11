@@ -19,7 +19,7 @@ module.exports = {
         //Init dependencies
         var errLib = require("../util/errors.js");
         const fs = require("fs");
-        const reactroles = require("../reactroles.json");
+        const reactroles = require("../store/reactroles.json");
         const jsonfile = require("jsonfile");
         var Discord = require("discord.js");
         var client = require("../aegis.js").sendClient();
