@@ -573,7 +573,7 @@ client.on("messageDeleteBulk", async messages =>{
 client.on("guildCreate", guild =>{
     const embed = new Discord.MessageEmbed()
         .addField("Welcome to the Aegis Community!", "Thanks for adding Aegis!")
-        .addField("If you need assistance, the best place to get it is on the offical support hub", "https://discord.gg/9KpYRme")
+        .addField("If you need assistance, the best place to get it is on the offical support hub", "https://discord.gg/NvqK5W9")
         .setColor("#30167c");
 
     var logchannelIDFinder = guild.channels.cache.find(c => c.name === "log-channel").id;
@@ -589,6 +589,12 @@ client.on("guildCreate", guild =>{
             logchannelIDFinder = null;
         }
     }
+
+    //Send notification to Dev Server
+    var devGuildLog = client.guilds.cache.get("409365548766461952").channels.cache.get("742885805449805945");
+    devGuildLog.send(`**Joined a new server: ${guild.name} (ID: ${guild.id})`);
+
+    guild.owner.send({embed})
 
     GuildDB.findOne({where: {guildid: guild.id}}).then(row =>{
         if(!row){
