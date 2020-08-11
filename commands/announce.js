@@ -1,7 +1,7 @@
 module.exports = {
     name: "announce",
     description: "Allows automated pinging of 'restricted' roles e.g Server News.",
-    alias: ["NONE"],
+    alias: [],
     usage: `announce <channel> "<Role Name>" <content> (include the ""s)`,
     permissions: "NONE",
     async execute(message, args) {
