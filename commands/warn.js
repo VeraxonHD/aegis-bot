@@ -24,8 +24,8 @@ module.exports = {
             var snowflakeRegexTest = new RegExp("([0-9]{18})");
             if(args[0].length == 18 && snowflakeRegexTest.test(args[0])){
                 tgtmember = message.guild.members.cache.get(args[0]);
-            }else if(message.mentions.users.first()){
-                tgtmember = message.mentions.users.first();
+            }else if(message.mentions.members.first()){
+                tgtmember = message.mentions.members.first();
             }else{
                 return errLib.userNotFound(message.channel, args[0]);
             }
@@ -72,8 +72,9 @@ module.exports = {
                     reason: reason
                 });
             }
-            if(mainfile.warnAdd(tgtmember.id) == true){
-                message.reply(`Warn added to user ${tgtmember.id}`);
+            var warnSuccess = await cfsLib.addWarn(tgtmember.id, message.guild.id)
+            if(warnSuccess == true){
+                message.reply(`Warn added to user ${tgtmember}`);
             }else{
                 message.reply("I had an issue adding that warning. They probably don't exist in the database.");
             }
