@@ -478,6 +478,9 @@ antiSpam.on("warnAdd", async member =>{
 
 //On message delete event
 client.on("messageDelete", async message => {
+    if(message.partial){
+        await message.fetch()
+    }
     var mcontent = message.content;
     var gConfig = await cfsLib.getGuildConfig(message.guild.id);
     if(mcontent.length > 1023){
@@ -504,6 +507,12 @@ client.on("messageDelete", async message => {
 
 //On message edit event
 client.on("messageUpdate", async (oldMessage, newMessage) => {
+    if(newMessage.partial){
+        await newMessage.fetch()
+    }
+    if(oldMessage.partial){
+        await oldMessage.fetch()
+    }
     var guild = newMessage.guild;
     var gConfig = await cfsLib.getGuildConfig(guild.id);
     if(!oldMessage.content || !newMessage.content){
@@ -544,6 +553,9 @@ client.on("messageDeleteBulk", async messages =>{
     var i = 0
     if(messages.size < 25){
         messages.forEach(element => {
+            if(element.partial){
+                await element.fetch()
+            }
             var content = element.content
             if(!element.content){content = "No Content"}
             if(element.content.length > 1023){content = "Too Long to post content."}
@@ -747,7 +759,8 @@ Event Name:         messageReactionAdd
 Event Description:  Fired when a message recieves a new reaction Emoji
 =====================================================================================*/
 
-client.on("messageReactionAdd", (messageReaction, user) =>{
+client.on("messageReactionAdd", async (messageReaction, user) =>{
+    if(messageReaction.message.partial) await messageReaction.message.fetch();
     var message = messageReaction.message;
     if(message.channel.type == "dm") return;
     var member = message.guild.members.cache.get(user.id);
