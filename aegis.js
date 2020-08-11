@@ -552,7 +552,7 @@ client.on("messageDeleteBulk", async messages =>{
     .setFooter("AEGIS-BULK-DELETE Event");
     var i = 0
     if(messages.size < 25){
-        messages.forEach(element => {
+        messages.forEach(async element => {
             if(element.partial){
                 await element.fetch()
             }
