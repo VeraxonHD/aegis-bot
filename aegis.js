@@ -101,7 +101,6 @@ const GuildDB = sequelize.define("guilddb", {
     config: Sequelize.JSON,
     members: Sequelize.JSON
 });
-
 const TagsDB = sequelize.define("tagsdb", {
     guildid: Sequelize.STRING,
     name: Sequelize.STRING,
