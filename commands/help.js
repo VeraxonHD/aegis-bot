@@ -18,7 +18,8 @@ module.exports = {
         });
 
         if(!args[0]){
-            message.reply(`Here are a list of commands:**\n${commandlist}**\nTo get detailed help, use "${config.prefix}help <command name>"`);
+            embed.addField("Need Help with something technical? Want to add Aegis to your own Guild? Join the Support Discord!", "https://discord.gg/NvqK5W9");
+            return message.reply(`Here are a list of commands:**\n${commandlist}**\nTo get detailed help, use "${config.prefix}help <command name>"`, {embed});
         }else{
             var command = client.commands.get(commandName);
             if(!command){
@@ -48,6 +49,7 @@ module.exports = {
             embed.addField("Aliases", alias, true);
             embed.addField("Usage", usage, true);
             embed.addField("Permissions", permissions, true);
+            embed.addField("Need more help? Join the Support Discord!")
             embed.setTimestamp(new Date());
             embed.setFooter("AEGIS-HELP Command");
             embed.setColor("#42f4c8");
