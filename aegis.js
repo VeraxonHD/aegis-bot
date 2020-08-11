@@ -1,9 +1,9 @@
 var Discord = require("discord.js");
 var client = new Discord.Client({partials: ["MESSAGE", "REACTION"]});
-var config = require("./config.json");
-var mutes = require("./mutes.json")
+var config = require("./store/config.json");
+var mutes = require("./store/mutes.json")
 var cfsLib = require("./util/globalFuncs.js");
-var prefix = config.general.prefix;
+var prefix = config.prefix;
 var fs = require("fs");
 var Sequelize = require("sequelize");
 var jsonfile = require("jsonfile");
@@ -31,7 +31,7 @@ const antiSpam = new AntiSpam({
     // And many more options... See the documentation.
 });
 
-client.login(config.general.token);
+client.login(config.token);
 
 const sequelize = new Sequelize("database", "user", "password", {
     host: "localhost",
@@ -110,17 +110,7 @@ const TagsDB = sequelize.define("tagsdb", {
     creator: Sequelize.STRING
 });
 
-exports.warnAdd = (userid) =>{
-    try{
-        sequelize.query(`UPDATE userdbs SET globalWarnings = globalWarnings + 1 WHERE userid = '${userid}'`);
-        return true;
-    }catch(e){
-        console.log(e);
-        return false;
-    }
-};
-
-exports.sendDB = () =>{
+exports.sendUserDB = () =>{
     return UserDB;
 };
 
@@ -585,7 +575,7 @@ client.on("guildCreate", guild =>{
                 embed.addField("To start off, I have created a channel named log-channel where all my message logs will go.", "Feel free to set permissions for this channel, as long as I have the ability to READ_MESSAGES and SEND_MESSAGES!");
             });
         }catch (err){
-            embed.addField(`I tried to add a log channel, but you didn't give me the permission to create channels (MANAGE_CHANNELS). You must create a log channel yourself and run the command \`${config.general.prefix}configure logchannel default <the channel ID>\`, else my capabilities will be severely limited.`)
+            embed.addField(`I tried to add a log channel, but you didn't give me the permission to create channels (MANAGE_CHANNELS). You must create a log channel yourself and run the command \`${config.prefix}configure logchannel default <the channel ID>\`, else my capabilities will be severely limited.`)
             logchannelIDFinder = null;
         }
     }
@@ -763,7 +753,7 @@ client.on("messageReactionAdd", (messageReaction, user) =>{
     var message = messageReaction.message;
     if(message.channel.type == "dm") return;
     var member = message.guild.members.cache.get(user.id);
-    var reactroles = require("./reactroles.json");
+    var reactroles = require("./store/reactroles.json");
     /*=================================================================================
     Function Name:          Reaction Self-Service Role Menu - "SelfRole" for short
     Function Description:   This function allows users to assign their own roles.
@@ -802,7 +792,7 @@ client.on("messageReactionRemove", async (messageReaction, user) =>{
     var message = messageReaction.message;
     if(message.channel.type == "dm") return;
     var member = message.guild.members.cache.get(user.id);
-    var reactroles = require("./reactroles.json");
+    var reactroles = require("./store/reactroles.json");
     /*=================================================================================
     Function Name:          Anti-SelfRole
     Function Description:   This function allows users to remove the roles, if they
