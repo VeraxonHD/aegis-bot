@@ -2,7 +2,7 @@ module.exports = {
     name: "configure",
     description: "Allows Administrators to configure certain bot I/O features",
     alias: ["config", "cfg"],
-    usage: "configure *<param, see below>*\n**disabledCommands** (-dc) <command name>\n**disabledLogs** (-dl) <log name>\n**logchannel** (-lc) <log channel type (moderation, voice, migration, suggestions, default)> <channel id>\n**modmail** <-mm) <category channel>\n**autorole** (-ar) <role id>\n**auroroleenable** (-are) (toggle, no params)\n**filters** (-f) <filter name (discordInvites) or (exempt)> <if exempt: userID>",
+    usage: "configure *<param, see below>*\n**disabledCommands** (-dc) <command name>\n**disabledLogs** (-dl) <log name>\n**logchannel** (-lc) <log channel type (moderation, voice, migration, suggestions, default)> <channel id>\n**modmail** <-mm) <category channel>\n**autorole** (-ar) <@Role>\n**auroroleenable** (-are) (toggle, no params)\n**filters** (-f) <filter name (discordInvites) or (exempt)> <if exempt: userID>\n**mutedrole** (-mr) <@Role>",
     permissions: "ADMINISTRATOR",
     async execute(message, args) {
         var errLib = require("../util/errors.js");
