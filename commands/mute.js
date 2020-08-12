@@ -19,7 +19,7 @@ module.exports = {
 		
 		//Module Variables
 		var guild = message.guild;
-		var mutedRole = guild.roles.cache.find(role => role.name.toLowerCase() === gConfig.mutedrole.toLowerCase());
+		var mutedRole = guild.roles.cache.get(gConfig.mutedrole);
 		var logchannel = await cfsLib.getLogChannel(guild, "moderation");
 		var moderator = message.author;
 		var time = args[1];

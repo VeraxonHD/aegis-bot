@@ -193,6 +193,22 @@ module.exports = {
                         console.error(err)
                         return message.reply(`There was an error writing to the database. Please try again later or contact Vex#1337`);
                     });
+                }else if(convar == "mutedrole" || convar == "-mr"){
+                    var pingedRole = message.mentions.roles.first();
+                    if(!pingedRole){
+                        return errLib.missingArgumentsEmbed(message.channel, "configure", "Mentioned Role", "Final");				
+                    }
+                    if(message.guild.roles.cache.has(pingedRole.id)){
+                        gConfig.mutedrole = pingedRole.id;
+                        GuildDB.update({config: gConfig}, {where: {guildid: message.guild.id}}).then(()=>{
+                            return message.reply(`Success! Changed Muted Role to **${pingedRole.name}**`);
+                        }).catch(err =>{
+                            console.error(err)
+                            return message.reply(`There was an error writing to the database. Please try again later or contact Vex#1337`);
+                        });
+                    }else{
+                        return message.reply("That is an invalid role. Please mention the role you wish to set as the muted role.");
+                    }
                 }
             }else{
                 return message.reply("That is not a valid Config Variable.");
