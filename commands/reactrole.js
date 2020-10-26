@@ -98,7 +98,7 @@ module.exports = {
                             jsonfile.writeFile("./reactroles.json", reactroles, {spaces: 4}, err =>{
                                 //If a success, end of module. Send the success to the user.
                                 if(!err){
-                                    message.guild.channels.cache.get(reactroles[messageUnique].channelid).fetchMessage(reactroles[messageUnique].messageid).then(msg =>{
+                                    message.guild.channels.cache.get(reactroles[messageUnique].channelid).messages.fetch(reactroles[messageUnique].messageid).then(msg =>{
                                         msg.react(client.emojis.get(emojiid))
                                     })
                                     return message.reply(`Success! You have added **${emoji}** to role **${role.name}** on message **${messageUnique}**`);
@@ -129,7 +129,7 @@ module.exports = {
                 return errLib.invalidPermissions(message.channel, "reactrole.delete", "MANAGE_MESSAGES");
             }else{
                 try{
-                    message.guild.channels.cache.get(reactroles[messageUnique].channelid).fetchMessage(reactroles[messageUnique].messageid).then(msg =>{
+                    message.guild.channels.cache.get(reactroles[messageUnique].channelid).messages.fetch(reactroles[messageUnique].messageid).then(msg =>{
                         msg.clearReactions();
                         msg.delete();
                         delete reactroles[messageUnique];
@@ -152,7 +152,7 @@ module.exports = {
                     emojistring = emojistring.split(":")[1];
                     var emoji = client.emojis.find(val => val.name === emojistring);
                     if(reactroles[messageUnique][emoji.id]){
-                        message.guild.channels.cache.get(reactroles[messageUnique].channelid).fetchMessage(reactroles[messageUnique].messageid).then(msg =>{
+                        message.guild.channels.cache.get(reactroles[messageUnique].channelid).messages.fetch(reactroles[messageUnique].messageid).then(msg =>{
                             var targetreaction = msg.reactions.get(emoji.name+":"+emoji.id);
                             console.log(targetreaction);
                             targetreaction.users.forEach(user => {
