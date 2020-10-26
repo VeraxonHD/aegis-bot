@@ -90,7 +90,7 @@ module.exports = {
                     
                     try{
                         emoji = emoji.split(":")[1];
-                        var emojiid = client.emojis.find(val => val.name === emoji).id ;//finish
+                        var emojiid = client.emojis.cache.find(val => val.name === emoji).id ;//finish
                         try{
                             var roleid = role.id;
                             reactroles[messageUnique][emojiid] = roleid;
